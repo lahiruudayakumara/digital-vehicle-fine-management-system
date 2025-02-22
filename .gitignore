@@ -1,0 +1,38 @@
+# Ignore Maven and Gradle build files
+target/
+build/
+
+# Ignore IntelliJ IDEA project files
+.idea/
+*.iml
+
+# Ignore Eclipse project files
+.project
+.classpath
+.settings/
+
+# Ignore VS Code project files
+.vscode/
+
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore logs
+*.log
+
+# Ignore environment variables
+.env
+
+# Ignore build output directories
+dist/
+out/
+
+# Ignore React Native specific files
+.expo/
+.expo-shared/
+*.expo
+*.expo-shared
+
+# Ignore Vite build output
+.vite/
+.vite_cache/
