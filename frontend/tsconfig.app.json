@@ -26,7 +26,19 @@
     /* Path Alias */
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@api/*": ["api/*"],
+      "@assets/*": ["assets/*"],
+      "@components/*": ["components/*"],
+      "@context/*": ["context/*"],
+      "@hooks/*": ["hooks/*"],
+      "@layouts/*": ["layouts/*"],
+      "@pages/*": ["pages/*"],
+      "@routes/*": ["routes/*"],
+      "@sections/*": ["sections/*"],
+      "@services/*": ["services/*"],
+      "@stores/*": ["stores/*"],
+      "@utils/*": ["utils/*"],
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
