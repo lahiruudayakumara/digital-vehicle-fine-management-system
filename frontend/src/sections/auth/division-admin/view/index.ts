@@ -1,0 +1,1 @@
+export { default as DivisionAdminLoginView } from '@sections/auth/division-admin/view/division-admin-login-view';
