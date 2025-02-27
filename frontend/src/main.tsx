@@ -1,6 +1,6 @@
 import "./index.css";
 
-import MainRoute from "@/routes/main-route";
+import MainRoute from "@routes/main-route";
 import { Provider } from "react-redux";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
