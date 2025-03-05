@@ -41,6 +41,6 @@
       "@utils/*": ["utils/*"],
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/routes/sections/division-admin-dashboard/view"],
   "exclude": ["node_modules"]
 }
