@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil {
@@ -33,28 +34,8 @@ public class JwtTokenUtil {
                 .compact();
     }
 
-//    public String getUsernameFromToken(String token) {
-//        return Jwts.parserBuilder()
-//                .setSigningKey(getSigningKey())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody()
-//                .getSubject();
-//    }
-//
-//    public boolean validateToken(String token) {
-//        try {
-//            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
-//            return true;
-//        } catch (ExpiredJwtException e) {
-//            System.out.println("JWT Token has expired");
-//        } catch (MalformedJwtException e) {
-//            System.out.println("Invalid JWT Token");
-//        } catch (SignatureException e) {
-//            System.out.println("Invalid JWT Signature");
-//        } catch (Exception e) {
-//            System.out.println("JWT validation error");
-//        }
-//        return false;
-//    }
+    // Get expiration time in seconds
+    public long getExpirationTime() {
+        return expiration / 1000;
+    }
 }
