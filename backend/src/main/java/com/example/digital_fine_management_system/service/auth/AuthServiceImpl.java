@@ -63,27 +63,27 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-//    @Override
-//    public LoginResponse loginUser(LoginRequest request) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-//        );
-//
-//        User user = userRepository.findByEmail(request.getEmail())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        String token = jwtTokenUtil.generateToken(user.getEmail());
-////        String refreshToken = jwtTokenUtil.generateRefreshToken(user.getEmail());
-//
-//        return LoginResponse.builder()
-//                .email(user.getEmail())
-//                .token(token)
-//                .role(user.getRole().name())
-////                .expiresIn(jwtTokenUtil.getExpirationTime()) // Ensure JWT expiration is set
-////                .refreshToken(refreshToken)
-//                .expiresIn(Instant.now().getEpochSecond())
-//                .refreshToken(token)
-//                .timestamp(Instant.now())
-//                .build();
-//    }
+    @Override
+    public LoginResponse loginUser(LoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String token = jwtTokenUtil.generateToken(user.getEmail());
+//        String refreshToken = jwtTokenUtil.generateRefreshToken(user.getEmail());
+
+        return LoginResponse.builder()
+                .email(user.getEmail())
+                .token(token)
+                .role(user.getRole().name())
+//                .expiresIn(jwtTokenUtil.getExpirationTime()) // Ensure JWT expiration is set
+//                .refreshToken(refreshToken)
+                .expiresIn(Instant.now().getEpochSecond())
+                .refreshToken(token)
+                .timestamp(Instant.now())
+                .build();
+    }
 }
