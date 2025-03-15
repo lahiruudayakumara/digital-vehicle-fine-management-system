@@ -1,4 +1,5 @@
-import { FaChartBar, FaUsers, FaClipboardList, FaFileAlt } from 'react-icons/fa';
+import {  FaUsers, FaClipboardList, FaFileAlt } from 'react-icons/fa';
+import Sidebar from './division-admin-sidebar'
 
 const finesData = [
   { id: 1, officer: 'Abram Vaccaro', officerId: 'ABX-2938-PLQ', license: 'ABX-2938-PLQ', vehicle: 'CAB-1234', date: '2025/02/28', reason: 'A2597', status: 'Pending' },
@@ -12,16 +13,8 @@ const finesData = [
 function AdminDashboardView() {
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white p-5 shadow-lg">
-        <h2 className="text-xl font-bold text-blue-600">FINEMATE</h2>
-        <nav className="mt-6">
-          <ul>
-            <li className="p-2 bg-gradient-to-r from-blue-500 to-green-400 text-white rounded-lg">Dashboard</li>
-            <li className="p-2 mt-3 text-gray-700 hover:bg-gray-200 rounded-lg">Motor Traffic Officer Management</li>
-          </ul>
-        </nav>
-      </aside>
+      
+      <Sidebar />
 
       {/* Main Content */}
       <main className="flex-1 p-6">
