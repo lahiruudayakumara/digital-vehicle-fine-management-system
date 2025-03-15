@@ -1,4 +1,13 @@
 {
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "baseUrl": "./src", // Points to 'src' folder
+    "paths": {
+      "@/*": ["*"], // '@/' -> 'src/*'
+      "@components/*": ["components/*"] // '@components/' -> 'src/components/*'
+    }
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
