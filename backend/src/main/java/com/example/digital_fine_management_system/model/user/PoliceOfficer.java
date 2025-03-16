@@ -22,8 +22,8 @@ public class PoliceOfficer extends User {
 
     @NotNull(message = "Badge number cannot be null")
     @Size(min = 1, max = 20, message = "Badge number must be between 1 and 20 characters")
-    @Column(unique = true, nullable = false, length = 20)
-    private String badgeNumber;
+    @Column(name = "police_id", unique = true, nullable = false)
+    private String policeId;
 
     @Size(max = 100, message = "Station name cannot be longer than 100 characters")
     @Column(length = 100)

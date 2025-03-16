@@ -12,11 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -34,11 +34,11 @@ public class AuthServiceImpl implements AuthService {
     public AuthServiceImpl(
             UserRepository userRepository,
             JwtTokenUtil jwtTokenUtil,
-//            AuthenticationManager authenticationManager,
+            AuthenticationManager authenticationManager,
             UserDetailsService userDetailsService) {
         this.userRepository = userRepository;
         this.jwtTokenUtil = jwtTokenUtil;
-//        this.authenticationManager = authenticationManager;
+        this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
     }
 
@@ -63,27 +63,27 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-//    @Override
-//    public LoginResponse loginUser(LoginRequest request) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-//        );
-//
-//        User user = userRepository.findByEmail(request.getEmail())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        String token = jwtTokenUtil.generateToken(user.getEmail());
-////        String refreshToken = jwtTokenUtil.generateRefreshToken(user.getEmail());
-//
-//        return LoginResponse.builder()
-//                .email(user.getEmail())
-//                .token(token)
-//                .role(user.getRole().name())
-////                .expiresIn(jwtTokenUtil.getExpirationTime()) // Ensure JWT expiration is set
-////                .refreshToken(refreshToken)
-//                .expiresIn(Instant.now().getEpochSecond())
-//                .refreshToken(token)
-//                .timestamp(Instant.now())
-//                .build();
-//    }
+    @Override
+    public LoginResponse loginUser(LoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+
+        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found")));
+
+        String token = jwtTokenUtil.generateToken(user.get().getEmail());
+        String refreshToken = jwtTokenUtil.generateToken(user.get().getEmail());
+
+        return LoginResponse.builder()
+                .email(user.get().getEmail())
+                .token(token)
+                .role(user.get().getRole().name())
+                .expiresIn(jwtTokenUtil.getExpirationTime()) // Ensure JWT expiration is set
+                .refreshToken(refreshToken)
+                .expiresIn(Instant.now().getEpochSecond())
+                .refreshToken(token)
+                .timestamp(Instant.now())
+                .build();
+    }
 }
