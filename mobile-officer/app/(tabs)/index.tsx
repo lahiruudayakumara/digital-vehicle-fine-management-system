@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -8,10 +8,14 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* App Logo */}
+      <Image source={require('../../assets/images/fine-logo.jpg')} style={styles.logo} />
+
+
       <View style={styles.card}>
         <View style={styles.flexColumn}>
           <Text style={styles.title}>Create fine</Text>
-          
+
           <TouchableOpacity
             style={[styles.button, styles.outlineButton]}
             onPress={() => setModalVisible(true)}>
@@ -21,7 +25,7 @@ const HomeScreen: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.button, styles.filledButton]}
-            onPress={() => {}}>
+            onPress={() => { }}>
             <Icon name="qrcode-scan" size={22} color="white" />
             <Text style={styles.filledButtonText}>Scan QR Code</Text>
           </TouchableOpacity>
@@ -54,7 +58,7 @@ const HomeScreen: React.FC = () => {
               </View>
             ))}
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={() => {}}>
+              <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={() => { }}>
                 <Icon name="check-circle-outline" size={22} color="#3B82F6" />
                 <Text style={styles.outlineButtonText}>Create Fine</Text>
               </TouchableOpacity>
@@ -72,6 +76,7 @@ const HomeScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white', padding: 16, justifyContent: 'center' },
+  logo: { width: 200, height: 200, alignSelf: 'center', marginBottom: 20 },
   card: { backgroundColor: 'white', padding: 16, borderRadius: 12, shadowOpacity: 0.1, marginBottom: 16 },
   flexColumn: { alignItems: 'center' },
   title: { fontSize: 24, fontWeight: 'bold', color: 'black', marginBottom: 16 },

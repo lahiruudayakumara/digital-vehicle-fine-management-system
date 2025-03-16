@@ -11,7 +11,7 @@ const ProfileScreen: React.FC = () => {
       <View style={styles.card}>
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri:"./mobile-officer/assets/images/profile.jpg" }} // Replace with actual image URL
+            source={{ uri:'../../assets/images/profile.jpg' }} // Replace with actual image URL
             style={styles.profileImage}
           />
           <Text style={styles.name}>Duvindu Nimsara</Text>
