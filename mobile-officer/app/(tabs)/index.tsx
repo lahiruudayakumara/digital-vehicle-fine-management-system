@@ -1,74 +1,101 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const HomeScreen: React.FC = () => {
+  const [isModalVisible, setModalVisible] = useState(false);
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      {/* App Logo */}
+      <Image source={require('../../assets/images/fine-logo.jpg')} style={styles.logo} />
+
+
+      <View style={styles.card}>
+        <View style={styles.flexColumn}>
+          <Text style={styles.title}>Create fine</Text>
+
+          <TouchableOpacity
+            style={[styles.button, styles.outlineButton]}
+            onPress={() => setModalVisible(true)}>
+            <Icon name="pencil-outline" size={22} color="#3B82F6" />
+            <Text style={styles.outlineButtonText}>Create Manually</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.filledButton]}
+            onPress={() => { }}>
+            <Icon name="qrcode-scan" size={22} color="white" />
+            <Text style={styles.filledButtonText}>Scan QR Code</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.title}>Driver fine History</Text>
+        <View style={styles.inputContainer}>
+          <TextInput placeholder="Type License number" style={styles.input} />
+          <TouchableOpacity style={styles.searchButton}>
+            <Icon name="magnify" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Modal visible={isModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Create Fine</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Icon name="close-circle-outline" size={28} color="red" />
+              </TouchableOpacity>
+            </View>
+            {['Driver Name', 'License Number', 'Vehicle Number', 'Date', 'Reason', 'Fine'].map((label, index) => (
+              <View key={index} style={styles.inputGroup}>
+                <Text style={styles.label}>{label} *</Text>
+                <TextInput placeholder={`Enter ${label.toLowerCase()}`} style={styles.inputField} />
+              </View>
+            ))}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={() => { }}>
+                <Icon name="check-circle-outline" size={22} color="#3B82F6" />
+                <Text style={styles.outlineButtonText}>Create Fine</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, styles.filledButton]} onPress={() => setModalVisible(false)}>
+                <Icon name="close-circle-outline" size={22} color="white" />
+                <Text style={styles.filledButtonText}>Discard Fine</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  container: { flex: 1, backgroundColor: 'white', padding: 16, justifyContent: 'center' },
+  logo: { width: 200, height: 200, alignSelf: 'center', marginBottom: 20 },
+  card: { backgroundColor: 'white', padding: 16, borderRadius: 12, shadowOpacity: 0.1, marginBottom: 16 },
+  flexColumn: { alignItems: 'center' },
+  title: { fontSize: 24, fontWeight: 'bold', color: 'black', marginBottom: 16 },
+  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, width: '100%', borderRadius: 8, marginBottom: 10 },
+  outlineButton: { borderWidth: 1, borderColor: '#3B82F6' },
+  outlineButtonText: { color: '#3B82F6', fontSize: 16, fontWeight: '500', marginLeft: 8 },
+  filledButton: { backgroundColor: '#3B82F6' },
+  filledButtonText: { color: 'white', fontSize: 16, fontWeight: '500', marginLeft: 8 },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
+  input: { flex: 1, fontSize: 16 },
+  searchButton: { backgroundColor: '#3B82F6', padding: 10, borderRadius: 8 },
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContent: { width: '80%', backgroundColor: 'white', padding: 16, borderRadius: 12, shadowOpacity: 0.1 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold' },
+  inputGroup: { marginBottom: 12 },
+  label: { fontSize: 16, fontWeight: '500', color: '#444', marginBottom: 4 },
+  inputField: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, fontSize: 16 },
+  modalButtons: { flexDirection: 'column', justifyContent: 'space-between', marginTop: 16 },
 });
+
+export default HomeScreen;
