@@ -4,6 +4,8 @@ package com.example.digital_fine_management_system.controllers.auth;
 import com.example.digital_fine_management_system.dto.auth.LoginRequest;
 import com.example.digital_fine_management_system.dto.auth.LoginResponse;
 import com.example.digital_fine_management_system.dto.auth.RegisterRequest;
+import com.example.digital_fine_management_system.dto.policeOfficer.PoliceOfficerRequestDTO;
+import com.example.digital_fine_management_system.dto.policeOfficer.PoliceOfficerResponseDTO;
 import com.example.digital_fine_management_system.service.auth.AuthService;
 import com.example.digital_fine_management_system.util.JwtTokenProvider;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest request) {
         String response = authService.registerUser(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register-police-officer")
+    public ResponseEntity<String> registerPoliceOfficer(@RequestBody PoliceOfficerRequestDTO request) {
+        String response = authService.registerPoliceOfficer(request);
         return ResponseEntity.ok(response);
     }
 
