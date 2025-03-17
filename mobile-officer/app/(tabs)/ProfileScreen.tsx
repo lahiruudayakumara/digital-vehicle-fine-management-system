@@ -11,9 +11,10 @@ const ProfileScreen: React.FC = () => {
       <View style={styles.card}>
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri:'../../assets/images/profile.jpg' }} // Replace with actual image URL
-            style={styles.profileImage}
-          />
+  source={require('../../assets/images/profile.jpg')} 
+  style={styles.profileImage}
+/>
+
           <Text style={styles.name}>Duvindu Nimsara</Text>
           <Text style={styles.role}>Traffic officer</Text>
         </View>
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "white", padding: 16, justifyContent: "center" },
   card: { backgroundColor: "white", padding: 16, borderRadius: 12, shadowOpacity: 0.1, alignItems: "center" },
   profileHeader: { alignItems: "center", marginBottom: 16 },
-  profileImage: { width: 80, height: 80, borderRadius: 40 },
+  profileImage: { width: 150, height: 150, borderRadius: 100 },
   name: { fontSize: 20, fontWeight: "bold", color: "black", marginTop: 8 },
   role: { fontSize: 14, color: "gray", marginBottom: 8 },
   infoContainer: { width: "100%", marginTop: 12 },

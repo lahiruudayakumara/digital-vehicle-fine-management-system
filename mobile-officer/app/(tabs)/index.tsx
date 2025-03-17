@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const HomeScreen: React.FC = () => {
   const [isModalVisible, setModalVisible] = useState(false);
+  const [date, setDate] = useState<string>('');
+
+  // Set the current date on component mount
+  useEffect(() => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    setDate(currentDate);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       {/* App Logo */}
       <Image source={require('../../assets/images/fine-logo.jpg')} style={styles.logo} />
-
 
       <View style={styles.card}>
         <View style={styles.flexColumn}>
@@ -51,12 +57,17 @@ const HomeScreen: React.FC = () => {
                 <Icon name="close-circle-outline" size={28} color="red" />
               </TouchableOpacity>
             </View>
-            {['Driver Name', 'License Number', 'Vehicle Number', 'Date', 'Reason', 'Fine'].map((label, index) => (
+            {['Driver Name', 'License Number', 'Vehicle Number', 'Reason', 'Fine'].map((label, index) => (
               <View key={index} style={styles.inputGroup}>
-                <Text style={styles.label}>{label} *</Text>
+                <Text style={styles.label}>{label} <Text style={styles.required}>*</Text></Text>
                 <TextInput placeholder={`Enter ${label.toLowerCase()}`} style={styles.inputField} />
               </View>
             ))}
+            {/* Date Field with Auto-filled System Date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Date <Text style={styles.required}>*</Text></Text>
+              <TextInput value={date} editable={false} style={styles.inputField} />
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={() => { }}>
                 <Icon name="check-circle-outline" size={22} color="#3B82F6" />
@@ -94,6 +105,7 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontWeight: 'bold' },
   inputGroup: { marginBottom: 12 },
   label: { fontSize: 16, fontWeight: '500', color: '#444', marginBottom: 4 },
+  required: { color: 'red' },  // Red color for the asterisk
   inputField: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, fontSize: 16 },
   modalButtons: { flexDirection: 'column', justifyContent: 'space-between', marginTop: 16 },
 });
