@@ -1,9 +1,17 @@
 import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminLoginView = () => {
     const [password, setPassword] = useState("");
     const [selectedDivision, setSelectedDivision] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
+
+    const handleSignIn = () => {
+        // Add authentication logic here
+        navigate("/dashboard");
+    };
 
     return (
         <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -42,12 +50,12 @@ const AdminLoginView = () => {
                                 className="absolute right-3 top-2 text-gray-600"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
-                                {showPassword ? "see" : "hide"}
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
                     </div>
                     <a href="#" className="text-blue-500 text-sm mb-4">Forgot password?</a>
-                    <button className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full">SIGN IN</button>
+                    <button onClick={handleSignIn} className="bg-blue-500 text-white px-6 py-2 rounded-lg w-full">SIGN IN</button>
                 </div>
             </div>
         </div>
