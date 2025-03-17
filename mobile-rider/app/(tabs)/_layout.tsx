@@ -67,7 +67,7 @@ export default function TabLayout() {
         name="qrcode"
         options={{
           title: "QR Code",
-          tabBarIcon: ({ color, size }) => <Icon name="qr-code" color={color} size={size} />, // QR code icon
+          tabBarIcon: ({ color, size }) => <Icon name="qrcode" color={color} size={size} />, // QR code icon
         }}
       />
       <Tabs.Screen
