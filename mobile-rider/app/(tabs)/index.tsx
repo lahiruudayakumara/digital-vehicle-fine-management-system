@@ -1,298 +1,230 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Import from react-native-vector-icons
+import styles, {COLORS} from '../IndexStyles';
 
-// Interface for dynamic user data
-interface UserDetails {
-  name: string;
-  licenseNumber: string;
-  outstandingFines: number;
-  dueDate: string;
+// Types for our component props
+interface NotificationProps {
+  title: string;
+  description: string;
+  date: string;
+  isUrgent?: boolean;
 }
 
-const HomeScreen: React.FC = () => {
-  // Sample dynamic user data
-  const user: UserDetails = {
-    name: 'John Doe',
-    licenseNumber: '123456789',
-    outstandingFines: 150.00,
-    dueDate: 'March 25, 2025'
-  };
+interface FineCardProps {
+  amount: number;
+  dueDate: string;
+  description: string;
+  isPaid: boolean;
+}
 
-  const handlePayNow = () => {
-    // Add payment logic here
-    console.log('Payment process initiated');
-  };
-
+// Notification component
+const Notification: React.FC<NotificationProps> = ({ title, description, date, isUrgent }) => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+  
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      
-      {/* Header Section with Logo and Greeting */}
-      <View style={styles.header}>
-        <Image
-          source={require('@/assets/images/vehicle-fine-logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.greeting}>Hello, {user.name.split(' ')[0]}!</Text>
-        <Text style={styles.welcomeText}>Welcome to your fine management portal</Text>
+    <View style={[ 
+      styles.notificationCard, 
+      isDarkMode ? { backgroundColor: '#1F2937' } : { backgroundColor: COLORS.white },
+      isUrgent && { borderLeftColor: COLORS.accent, borderLeftWidth: 4 }
+    ]}>
+      <View style={styles.notificationIconContainer}>
+        {isUrgent ? 
+          <Icon name="exclamation-triangle" size={24} color={COLORS.accent} /> : 
+          <Icon name="bell" size={24} color={COLORS.primary} />
+        }
       </View>
-      
-      {/* Card for User Details */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Personal Information</Text>
-        </View>
-        <View style={styles.cardContent}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Full Name</Text>
-            <Text style={styles.infoValue}>{user.name}</Text>
-          </View>
-          <View style={styles.separator} />
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>License Number</Text>
-            <Text style={styles.infoValue}>{user.licenseNumber}</Text>
-          </View>
-        </View>
-      </View>
-      
-      {/* Outstanding Fines Card */}
-      <View style={styles.finesCard}>
-        <View style={[
-          styles.finesHeader, 
-          { backgroundColor: user.outstandingFines > 0 ? '#FF6B6B' : '#57C79F' }
-        ]}>
-          <Text style={styles.finesTitle}>Payment Due</Text>
-          <Text style={styles.finesAmount}>${user.outstandingFines.toFixed(2)}</Text>
-          <Text style={styles.dueDate}>Due by: {user.dueDate}</Text>
-        </View>
-        
-        <TouchableOpacity 
-          style={styles.payNowButton} 
-          onPress={handlePayNow}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.payNowText}>Pay Now</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Steps Section */}
-      <View style={styles.stepsContainer}>
-        <Text style={styles.stepsTitle}>How It Works</Text>
-        
-        <View style={styles.stepCard}>
-          <View style={styles.stepNumberContainer}>
-            <Text style={styles.stepNumber}>1</Text>
-          </View>
-          <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Review Your Fines</Text>
-            <Text style={styles.stepDescription}>Check details of any outstanding fines</Text>
-          </View>
-        </View>
-        
-        <View style={styles.stepCard}>
-          <View style={styles.stepNumberContainer}>
-            <Text style={styles.stepNumber}>2</Text>
-          </View>
-          <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Make Payment</Text>
-            <Text style={styles.stepDescription}>Clear your fines using our secure payment system</Text>
-          </View>
-        </View>
-        
-        <View style={styles.stepCard}>
-          <View style={styles.stepNumberContainer}>
-            <Text style={styles.stepNumber}>3</Text>
-          </View>
-          <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Get Receipt</Text>
-            <Text style={styles.stepDescription}>Receive confirmation and digital receipt instantly</Text>
-          </View>
-        </View>
+      <View style={styles.notificationContent}>
+        <Text style={[ 
+          styles.notificationTitle, 
+          isDarkMode && { color: COLORS.textLight } 
+        ]}>{title}</Text>
+        <Text style={[ 
+          styles.notificationDescription, 
+          isDarkMode && { color: '#9CA3AF' } 
+        ]}>{description}</Text>
+        <Text style={styles.notificationDate}>{date}</Text>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FC',
-  },
-  header: {
-    padding: 24,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    backgroundColor: '#3A67F4',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom: 20,
-  },
-  logo: {
-    height: 60,
-    width: 120,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  greeting: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F5',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  cardContent: {
-    padding: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  infoLabel: {
-    fontSize: 15,
-    color: '#667085',
-    flex: 1,
-  },
-  infoValue: {
-    fontSize: 15,
-    color: '#333',
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#F0F0F5',
-    marginVertical: 8,
-  },
-  finesCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginVertical: 10,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  finesHeader: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  finesTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 6,
-  },
-  finesAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginVertical: 4,
-  },
-  dueDate: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 4,
-  },
-  payNowButton: {
-    backgroundColor: '#3A67F4',
-    padding: 16,
-    alignItems: 'center',
-    margin: 16,
-    borderRadius: 12,
-  },
-  payNowText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  stepsContainer: {
-    marginTop: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
-  stepsTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
-    marginVertical: 16,
-  },
-  stepCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  stepNumberContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#E8EFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  stepNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#3A67F4',
-  },
-  stepContent: {
-    flex: 1,
-  },
-  stepTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  stepDescription: {
-    fontSize: 14,
-    color: '#667085',
-  },
-});
+// Fine summary card component
+const FineSummaryCard: React.FC<FineCardProps> = ({ amount, dueDate, description, isPaid }) => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+  
+  return (
+    <View style={[ 
+      styles.fineCard, 
+      isDarkMode ? { backgroundColor: '#1F2937' } : { backgroundColor: COLORS.white }
+    ]}>
+      <View style={[ 
+        styles.fineStatusIndicator, 
+        { backgroundColor: isPaid ? COLORS.success : COLORS.accent }
+      ]} />
+      <View style={styles.fineContent}>
+        <Text style={[ 
+          styles.fineAmount, 
+          isDarkMode && { color: COLORS.textLight } 
+        ]}>Rs. {amount.toFixed(2)}</Text>
+        <Text style={[ 
+          styles.fineDescription, 
+          isDarkMode && { color: '#9CA3AF' } 
+        ]}>{description}</Text>
+        <Text style={[ 
+          styles.fineDueDate, 
+          !isPaid && styles.fineOverdue, 
+          isDarkMode && !isPaid && { color: '#FCA5A5' }
+        ]}>
+          {isPaid ? 'Paid' : `Due: ${dueDate}`}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+// Quick action button component
+const QuickActionButton: React.FC<{ title: string, icon: React.ReactNode, onPress: () => void }> = ({ title, icon, onPress }) => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+  
+  return (
+    <TouchableOpacity 
+      style={[ 
+        styles.quickActionButton, 
+        isDarkMode ? { backgroundColor: '#374151' } : { backgroundColor: COLORS.white }
+      ]} 
+      onPress={onPress}
+    >
+      <View style={styles.quickActionIconContainer}>
+        {icon}
+      </View>
+      <Text style={[ 
+        styles.quickActionText, 
+        isDarkMode && { color: COLORS.textLight } 
+      ]}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const HomeScreen: React.FC = () => {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+  
+  return (
+    <ScrollView 
+      style={[ 
+        styles.container, 
+        { backgroundColor: isDarkMode ? COLORS.darkMode : COLORS.background }
+      ]}
+    >
+      {/* Welcome Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={[ 
+            styles.welcomeText, 
+            isDarkMode && { color: COLORS.textLight } 
+          ]}>Welcome back,</Text>
+          <Text style={[ 
+            styles.userName, 
+            isDarkMode && { color: COLORS.textLight } 
+          ]}>John Doe</Text>
+        </View>
+        <View style={[ 
+          styles.profileIcon, 
+          isDarkMode ? { backgroundColor: '#374151' } : { backgroundColor: COLORS.primary }
+        ]}>
+          <Text style={styles.profileInitials}>JD</Text>
+        </View>
+      </View>
+
+      {/* Fine Summary */}
+      <View style={styles.section}>
+        <Text style={[ 
+          styles.sectionTitle, 
+          isDarkMode && { color: COLORS.textLight } 
+        ]}>Pending Fines</Text>
+        
+        <FineSummaryCard 
+          amount={5000} 
+          dueDate="Mar 25, 2025" 
+          description="Speeding in School Zone" 
+          isPaid={false} 
+        />
+        
+        <FineSummaryCard 
+          amount={2500} 
+          dueDate="Apr 02, 2025" 
+          description="No Parking Violation" 
+          isPaid={false} 
+        />
+        
+        <FineSummaryCard 
+          amount={1500} 
+          dueDate="Mar 05, 2025" 
+          description="Signal Violation" 
+          isPaid={true} 
+        />
+        
+        <TouchableOpacity style={styles.viewAllButton}>
+          <Text style={styles.viewAllText}>View All Fines</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Quick Actions */}
+      <View style={styles.section}>
+        <Text style={[ 
+          styles.sectionTitle, 
+          isDarkMode && { color: COLORS.textLight } 
+        ]}>Quick Actions</Text>
+        
+        <View style={styles.quickActionsRow}>
+          <QuickActionButton 
+            title="Show QR" 
+            icon={<Icon name="qrcode" size={24} color={COLORS.primary} />} 
+            onPress={() => {}}
+          />
+          <QuickActionButton 
+            title="Legal Resources" 
+            icon={<Icon name="book" size={24} color={COLORS.primary} />} 
+            onPress={() => {}}
+          />
+        </View>
+      </View>
+
+      {/* Recent Notifications */}
+      <View style={styles.section}>
+        <Text style={[ 
+          styles.sectionTitle, 
+          isDarkMode && { color: COLORS.textLight } 
+        ]}>Recent Notifications</Text>
+        
+        <Notification 
+          title="New Fine Issued" 
+          description="You have received a new fine for speeding in a school zone." 
+          date="Today, 10:32 AM"
+          isUrgent={true}
+        />
+        
+        <Notification 
+          title="Payment Reminder" 
+          description="Your fine payment is due in 3 days. Avoid additional penalties by paying on time." 
+          date="Yesterday, 5:45 PM"
+          isUrgent={true}
+        />
+        
+        <Notification 
+          title="QR Code Generated" 
+          description="Your license QR code has been successfully generated." 
+          date="Mar 15, 2025"
+        />
+      </View>
+    </ScrollView>
+  );
+};
+
+
 
 export default HomeScreen;
