@@ -12,6 +12,7 @@ export const COLORS = {
   darkMode: '#111827',
   text: '#1F2937',
   textLight: '#F9FAFB',
+  grayLight: '#D1D5DB',
 };
 
 const styles = StyleSheet.create({

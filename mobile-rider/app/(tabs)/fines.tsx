@@ -1,5 +1,3 @@
-// fines.tsx
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -248,33 +246,43 @@ const FinesScreen: React.FC = () => {
     : fines.filter(fine => fine.status === filter);
   
   return (
-    <View style={[styles.container]}>
-      {/* Filter Chips */}
+    <View style={styles.container}>
+      {/* Filter Chips in a fixed height container */}
       <View style={styles.filterContainer}>
-        <FilterChip 
-          label="All" 
-          isActive={filter === 'all'} 
-          onPress={() => setFilter('all')} 
-        />
-        <FilterChip 
-          label="Unpaid" 
-          isActive={filter === 'unpaid'} 
-          onPress={() => setFilter('unpaid')} 
-        />
-        <FilterChip 
-          label="Appealed" 
-          isActive={filter === 'appealed'} 
-          onPress={() => setFilter('appealed')} 
-        />
-        <FilterChip 
-          label="Paid" 
-          isActive={filter === 'paid'} 
-          onPress={() => setFilter('paid')} 
-        />
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContent}
+        >
+          <FilterChip 
+            label="All" 
+            isActive={filter === 'all'} 
+            onPress={() => setFilter('all')} 
+          />
+          <FilterChip 
+            label="Unpaid" 
+            isActive={filter === 'unpaid'} 
+            onPress={() => setFilter('unpaid')} 
+          />
+          <FilterChip 
+            label="Appealed" 
+            isActive={filter === 'appealed'} 
+            onPress={() => setFilter('appealed')} 
+          />
+          <FilterChip 
+            label="Paid" 
+            isActive={filter === 'paid'} 
+            onPress={() => setFilter('paid')} 
+          />
+        </ScrollView>
       </View>
       
-      {/* Fine List */}
-      <ScrollView style={styles.finesList}>
+      {/* Fine List in flexible space with contentContainerStyle */}
+      <ScrollView 
+        style={styles.finesList}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        showsVerticalScrollIndicator={true}
+      >
         {filteredFines.length > 0 ? (
           filteredFines.map(fine => (
             <FineListItem 

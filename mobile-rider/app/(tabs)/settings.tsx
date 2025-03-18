@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Platform, StatusBar } from 'react-native';
+import styles from '../settingsStyles';
 
 // Define types for settings
 interface NotificationSettings {
@@ -71,11 +72,7 @@ const SettingsScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Customize your experience</Text>
-      </View>
+      
       
       <ScrollView style={styles.scrollView}>
         {/* Account Section */}
@@ -212,104 +209,6 @@ const SettingsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FC',
-  },
-  header: {
-    padding: 24,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    backgroundColor: '#3A67F4',
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginVertical: 12,
-    padding: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#3A67F4',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F5',
-  },
-  settingLabel: {
-    fontSize: 16,
-    color: '#333',
-  },
-  settingAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingValue: {
-    fontSize: 15,
-    color: '#667085',
-    marginRight: 8,
-  },
-  chevron: {
-    fontSize: 20,
-    color: '#667085',
-    marginTop: -2,
-  },
-  logoutButton: {
-    backgroundColor: '#F1F5FE',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  logoutText: {
-    color: '#3A67F4',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  versionContainer: {
-    alignItems: 'center',
-    paddingBottom: 24,
-  },
-  versionText: {
-    fontSize: 14,
-    color: '#667085',
-  },
-});
+
 
 export default SettingsScreen;

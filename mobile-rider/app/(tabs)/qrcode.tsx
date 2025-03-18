@@ -1,24 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share, Alert, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Share, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-// Colors based on your specification
-const COLORS = {
-  primary: '#1E3A8A', // Deep Blue
-  secondary: '#FACC15', // Bright Yellow
-  accent: '#DC2626', // Traffic Red
-  background: '#F3F4F6', // Light Gray
-  white: '#FFFFFF',
-  success: '#16A34A', // Green
-  darkMode: '#111827', // Dark Gray
-  text: '#1F2937', // Dark text for light mode
-  textLight: '#F9FAFB', // Light text for dark mode
-};
+import styles, { COLORS } from '../qrCodeStyles';
 
 const QRCodeScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   const [isBlacklisted, setIsBlacklisted] = useState(false);
   const [licenseStatus, setLicenseStatus] = useState('active'); // 'active', 'expired', 'suspended'
   
@@ -50,15 +35,13 @@ const QRCodeScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? COLORS.darkMode : COLORS.background }]}>  
+    <View style={[styles.container, { backgroundColor: COLORS.background }]}>  
       <View style={styles.qrContainer}>
-        <View style={[styles.qrCodeWrapper, { backgroundColor: isDarkMode ? '#1F2937' : COLORS.white }]}>  
+        <View style={[styles.qrCodeWrapper, { backgroundColor: COLORS.white }]}>  
           {userData.qrCodeGenerated ? (
             <View style={styles.qrCodePlaceholder}>
-              <Icon name="qrcode" size={200} color={isDarkMode ? COLORS.textLight : COLORS.text} />
-              <Text style={[styles.licenseNumber, isDarkMode && { color: COLORS.textLight }]}>
-                {userData.licenseNumber}
-              </Text>
+              <Icon name="qrcode" size={200} color={COLORS.text} />
+              <Text style={styles.licenseNumber}>{userData.licenseNumber}</Text>
             </View>
           ) : (
             <View style={styles.noQrCodePlaceholder}>
@@ -83,59 +66,5 @@ const QRCodeScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  qrContainer: {
-    marginBottom: 20,
-  },
-  qrCodeWrapper: {
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qrCodePlaceholder: {
-    alignItems: 'center',
-  },
-  licenseNumber: {
-    marginTop: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  noQrCodePlaceholder: {
-    alignItems: 'center',
-  },
-  noQrCodeText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: COLORS.accent,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  actionButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    marginLeft: 8,
-  },
-});
 
 export default QRCodeScreen;

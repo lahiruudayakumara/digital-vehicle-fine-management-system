@@ -51,22 +51,7 @@ const ProfileScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Header with profile summary */}
-      <View style={styles.header}>
-        <View style={styles.profileHeader}>
-          <Image
-            source={require('@/assets/images/avatar.png')}
-            style={styles.avatar}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{profile.name}</Text>
-            <Text style={styles.profileId}>ID: {profile.id}</Text>
-            <View style={styles.membershipBadge}>
-              <Text style={styles.membershipText}>Member since {profile.joinedDate}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      
       
       <ScrollView style={styles.scrollView}>
         {/* Quick Actions */}
@@ -92,6 +77,16 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Name</Text>
+            <Text style={styles.infoValue}>{profile.name}</Text>
+          </View>
+
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>ID</Text>
+            <Text style={styles.infoValue}>{profile.id}</Text>
+          </View>
+
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Email</Text>
             <Text style={styles.infoValue}>{profile.email}</Text>

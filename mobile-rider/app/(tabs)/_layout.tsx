@@ -1,8 +1,9 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import Icon from 'react-native-vector-icons/Feather'; // Importing Feather icons
+import FeatherIcons from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Colors based on your specification
+// Color palette
 const COLORS = {
   primary: '#1E3A8A', // Deep Blue
   secondary: '#FACC15', // Bright Yellow
@@ -33,49 +34,49 @@ export default function TabLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        headerTitle: "FineMate",
+        headerTitle: 'FineMate',
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => <Icon name="home" color={color} size={size} />, // Home icon
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => <FeatherIcons name="home" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="fines"
         options={{
-          title: "Fines",
-          tabBarIcon: ({ color, size }) => <Icon name="file-text" color={color} size={size} />, // File icon
+          title: 'Fines',
+          tabBarIcon: ({ color, size }) => <FeatherIcons name="file-text" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="qrcode"
         options={{
-          title: "QR Code",
-          tabBarIcon: ({ color, size }) => <Icon name="qrcode" color={color} size={size} />, // QR code icon
+          title: 'QR Code',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="qrcode" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="payment"
         options={{
-          title: "Payments",
-          tabBarIcon: ({ color, size }) => <Icon name="credit-card" color={color} size={size} />, // Credit card icon
+          title: 'Payments',
+          tabBarIcon: ({ color, size }) => <FeatherIcons name="credit-card" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => <Icon name="user" color={color} size={size} />, // User icon
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => <FeatherIcons name="user" color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color, size }) => <Icon name="settings" color={color} size={size} />, // Settings icon
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => <FeatherIcons name="settings" color={color} size={size} />,
         }}
       />
     </Tabs>
