@@ -1,6 +1,4 @@
-// app/(tabs)/_layout.tsx
 import React from 'react';
-import { useColorScheme } from 'react-native';
 import { Tabs } from 'expo-router';
 import Icon from 'react-native-vector-icons/Feather'; // Importing Feather icons
 
@@ -12,30 +10,18 @@ const COLORS = {
   background: '#F3F4F6', // Light Gray
   white: '#FFFFFF',
   success: '#16A34A', // Green
-  darkMode: '#111827', // Dark Gray
   text: '#1F2937', // Dark text for light mode
-  textLight: '#F9FAFB', // Light text for dark mode
 };
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
-  // Set the colors based on the color scheme
-  const theme = {
-    background: isDarkMode ? COLORS.darkMode : COLORS.background,
-    text: isDarkMode ? COLORS.textLight : COLORS.text,
-    tabBackground: isDarkMode ? '#1F2937' : COLORS.white,
-  };
-
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
-          backgroundColor: theme.tabBackground,
-          borderTopColor: isDarkMode ? '#2D3748' : '#E5E7EB',
+          backgroundColor: COLORS.white,
+          borderTopWidth: 0,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
@@ -47,6 +33,7 @@ export default function TabLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerTitle: "FineMate",
       }}
     >
       <Tabs.Screen

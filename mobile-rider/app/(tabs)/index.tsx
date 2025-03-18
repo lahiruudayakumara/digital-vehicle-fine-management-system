@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import from react-native-vector-icons
 import styles, {COLORS} from '../IndexStyles';
 
@@ -18,15 +18,17 @@ interface FineCardProps {
   isPaid: boolean;
 }
 
+interface UserProfileProps {
+  userName: string;
+  profileImage?: string;
+}
+
 // Notification component
 const Notification: React.FC<NotificationProps> = ({ title, description, date, isUrgent }) => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   return (
     <View style={[ 
-      styles.notificationCard, 
-      isDarkMode ? { backgroundColor: '#1F2937' } : { backgroundColor: COLORS.white },
+      styles.notificationCard,
+      { backgroundColor: COLORS.white },
       isUrgent && { borderLeftColor: COLORS.accent, borderLeftWidth: 4 }
     ]}>
       <View style={styles.notificationIconContainer}>
@@ -36,14 +38,8 @@ const Notification: React.FC<NotificationProps> = ({ title, description, date, i
         }
       </View>
       <View style={styles.notificationContent}>
-        <Text style={[ 
-          styles.notificationTitle, 
-          isDarkMode && { color: COLORS.textLight } 
-        ]}>{title}</Text>
-        <Text style={[ 
-          styles.notificationDescription, 
-          isDarkMode && { color: '#9CA3AF' } 
-        ]}>{description}</Text>
+        <Text style={styles.notificationTitle}>{title}</Text>
+        <Text style={styles.notificationDescription}>{description}</Text>
         <Text style={styles.notificationDate}>{date}</Text>
       </View>
     </View>
@@ -52,31 +48,21 @@ const Notification: React.FC<NotificationProps> = ({ title, description, date, i
 
 // Fine summary card component
 const FineSummaryCard: React.FC<FineCardProps> = ({ amount, dueDate, description, isPaid }) => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   return (
     <View style={[ 
-      styles.fineCard, 
-      isDarkMode ? { backgroundColor: '#1F2937' } : { backgroundColor: COLORS.white }
+      styles.fineCard,
+      { backgroundColor: COLORS.white }
     ]}>
       <View style={[ 
         styles.fineStatusIndicator, 
         { backgroundColor: isPaid ? COLORS.success : COLORS.accent }
       ]} />
       <View style={styles.fineContent}>
-        <Text style={[ 
-          styles.fineAmount, 
-          isDarkMode && { color: COLORS.textLight } 
-        ]}>Rs. {amount.toFixed(2)}</Text>
-        <Text style={[ 
-          styles.fineDescription, 
-          isDarkMode && { color: '#9CA3AF' } 
-        ]}>{description}</Text>
+        <Text style={styles.fineAmount}>Rs. {amount.toFixed(2)}</Text>
+        <Text style={styles.fineDescription}>{description}</Text>
         <Text style={[ 
           styles.fineDueDate, 
-          !isPaid && styles.fineOverdue, 
-          isDarkMode && !isPaid && { color: '#FCA5A5' }
+          !isPaid && styles.fineOverdue
         ]}>
           {isPaid ? 'Paid' : `Due: ${dueDate}`}
         </Text>
@@ -87,65 +73,57 @@ const FineSummaryCard: React.FC<FineCardProps> = ({ amount, dueDate, description
 
 // Quick action button component
 const QuickActionButton: React.FC<{ title: string, icon: React.ReactNode, onPress: () => void }> = ({ title, icon, onPress }) => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   return (
     <TouchableOpacity 
       style={[ 
-        styles.quickActionButton, 
-        isDarkMode ? { backgroundColor: '#374151' } : { backgroundColor: COLORS.white }
+        styles.quickActionButton,
+        { backgroundColor: COLORS.white }
       ]} 
       onPress={onPress}
     >
       <View style={styles.quickActionIconContainer}>
         {icon}
       </View>
-      <Text style={[ 
-        styles.quickActionText, 
-        isDarkMode && { color: COLORS.textLight } 
-      ]}>{title}</Text>
+      <Text style={styles.quickActionText}>{title}</Text>
     </TouchableOpacity>
   );
 };
 
+// User profile component
+const UserProfileHeader: React.FC<UserProfileProps> = ({ userName, profileImage }) => {
+  return (
+    <View style={styles.header}>
+      <View>
+        <Text style={styles.welcomeText}>Welcome back,</Text>
+        <Text style={styles.userName}>{userName}</Text>
+      </View>
+      <View style={styles.profileImageContainer}>
+        {profileImage ? (
+          <Image source={{ uri: profileImage }} style={styles.profileImage} />
+        ) : (
+          <View style={[styles.profileIcon, { backgroundColor: COLORS.primary }]}> 
+            <Text style={styles.profileInitials}>{userName.charAt(0)}</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+};
+
 const HomeScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   return (
     <ScrollView 
       style={[ 
         styles.container, 
-        { backgroundColor: isDarkMode ? COLORS.darkMode : COLORS.background }
+        { backgroundColor: COLORS.background }
       ]}
     >
       {/* Welcome Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[ 
-            styles.welcomeText, 
-            isDarkMode && { color: COLORS.textLight } 
-          ]}>Welcome back,</Text>
-          <Text style={[ 
-            styles.userName, 
-            isDarkMode && { color: COLORS.textLight } 
-          ]}>John Doe</Text>
-        </View>
-        <View style={[ 
-          styles.profileIcon, 
-          isDarkMode ? { backgroundColor: '#374151' } : { backgroundColor: COLORS.primary }
-        ]}>
-          <Text style={styles.profileInitials}>JD</Text>
-        </View>
-      </View>
+      <UserProfileHeader userName="Oliver Hayes" profileImage="https://pub-24990f2f31744f558e74dd8d73328de5.r2.dev/20597.jpg" />
 
       {/* Fine Summary */}
       <View style={styles.section}>
-        <Text style={[ 
-          styles.sectionTitle, 
-          isDarkMode && { color: COLORS.textLight } 
-        ]}>Pending Fines</Text>
+        <Text style={styles.sectionTitle}>Pending Fines</Text>
         
         <FineSummaryCard 
           amount={5000} 
@@ -175,10 +153,7 @@ const HomeScreen: React.FC = () => {
 
       {/* Quick Actions */}
       <View style={styles.section}>
-        <Text style={[ 
-          styles.sectionTitle, 
-          isDarkMode && { color: COLORS.textLight } 
-        ]}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
         
         <View style={styles.quickActionsRow}>
           <QuickActionButton 
@@ -196,10 +171,7 @@ const HomeScreen: React.FC = () => {
 
       {/* Recent Notifications */}
       <View style={styles.section}>
-        <Text style={[ 
-          styles.sectionTitle, 
-          isDarkMode && { color: COLORS.textLight } 
-        ]}>Recent Notifications</Text>
+        <Text style={styles.sectionTitle}>Recent Notifications</Text>
         
         <Notification 
           title="New Fine Issued" 
@@ -224,7 +196,5 @@ const HomeScreen: React.FC = () => {
     </ScrollView>
   );
 };
-
-
 
 export default HomeScreen;

@@ -25,6 +25,20 @@ const styles = StyleSheet.create({
       marginBottom: 24,
       paddingTop: 8,
     },
+    // Add these to your existing styles in IndexStyles.js
+
+profileImageContainer: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  overflow: 'hidden',
+  backgroundColor: COLORS.white, // Fallback background color
+},
+profileImage: {
+  width: '100%',
+  height: '100%',
+  resizeMode: 'cover',
+},
     welcomeText: {
       fontSize: 16,
       color: '#6B7280',

@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    
   },
   header: {
     flexDirection: 'row',
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
   finesList: {
     flex: 1,
     padding: 16,
-    marginBottom: 15,
+    
   },
   fineCard: {
     backgroundColor: COLORS.white,

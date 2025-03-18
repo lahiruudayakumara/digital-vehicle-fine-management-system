@@ -1,7 +1,7 @@
-//fines.tsx
+// fines.tsx
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles, { COLORS } from '../finesStyles';
 
@@ -25,9 +25,7 @@ const FineListItem: React.FC<{
   onPress: () => void;
   isExpanded: boolean;
 }> = ({ fine, onPress, isExpanded }) => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
+
   // Determine status color and icon name
   let statusColor, statusIconName;
   switch (fine.status) {
@@ -47,10 +45,7 @@ const FineListItem: React.FC<{
   }
 
   return (
-    <View style={[
-      styles.fineCard,
-      isDarkMode ? { backgroundColor: '#1F2937' } : { backgroundColor: COLORS.white }
-    ]}>
+    <View style={[styles.fineCard]}>
       <TouchableOpacity 
         style={styles.fineCardHeader} 
         onPress={onPress}
@@ -61,16 +56,10 @@ const FineListItem: React.FC<{
             <Icon name={statusIconName} size={16} color={COLORS.white} />
           </View>
           <View style={styles.fineCardHeaderInfo}>
-            <Text style={[
-              styles.fineDescription,
-              isDarkMode && { color: COLORS.textLight }
-            ]}>
+            <Text style={styles.fineDescription}>
               {fine.description}
             </Text>
-            <Text style={[
-              styles.fineMetaInfo,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>
+            <Text style={styles.fineMetaInfo}>
               {fine.date} • Rs. {fine.amount.toFixed(2)}
             </Text>
           </View>
@@ -79,74 +68,42 @@ const FineListItem: React.FC<{
         <Icon 
           name={isExpanded ? "chevron-up" : "chevron-down"} 
           size={20} 
-          color={isDarkMode ? '#9CA3AF' : '#6B7280'} 
+          color={COLORS.textLight} 
         />
       </TouchableOpacity>
       
       {isExpanded && (
         <View style={styles.fineCardDetail}>
           <View style={styles.fineCardDetailRow}>
-            <Text style={[
-              styles.fineCardDetailLabel,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>Fine ID:</Text>
-            <Text style={[
-              styles.fineCardDetailValue,
-              isDarkMode && { color: COLORS.textLight }
-            ]}>{fine.id}</Text>
+            <Text style={styles.fineCardDetailLabel}>Fine ID:</Text>
+            <Text style={styles.fineCardDetailValue}>{fine.id}</Text>
           </View>
           
           <View style={styles.fineCardDetailRow}>
-            <Text style={[
-              styles.fineCardDetailLabel,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>Location:</Text>
-            <Text style={[
-              styles.fineCardDetailValue,
-              isDarkMode && { color: COLORS.textLight }
-            ]}>{fine.location}</Text>
+            <Text style={styles.fineCardDetailLabel}>Location:</Text>
+            <Text style={styles.fineCardDetailValue}>{fine.location}</Text>
           </View>
           
           <View style={styles.fineCardDetailRow}>
-            <Text style={[
-              styles.fineCardDetailLabel,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>Officer:</Text>
-            <Text style={[
-              styles.fineCardDetailValue,
-              isDarkMode && { color: COLORS.textLight }
-            ]}>{fine.officerName} (ID: {fine.officerId})</Text>
+            <Text style={styles.fineCardDetailLabel}>Officer:</Text>
+            <Text style={styles.fineCardDetailValue}>{fine.officerName} (ID: {fine.officerId})</Text>
           </View>
           
           <View style={styles.fineCardDetailRow}>
-            <Text style={[
-              styles.fineCardDetailLabel,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>Type:</Text>
-            <Text style={[
-              styles.fineCardDetailValue,
-              isDarkMode && { color: COLORS.textLight }
-            ]}>{fine.violationType}</Text>
+            <Text style={styles.fineCardDetailLabel}>Type:</Text>
+            <Text style={styles.fineCardDetailValue}>{fine.violationType}</Text>
           </View>
           
           <View style={styles.fineCardDetailRow}>
-            <Text style={[
-              styles.fineCardDetailLabel,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>Due Date:</Text>
+            <Text style={styles.fineCardDetailLabel}>Due Date:</Text>
             <Text style={[
               styles.fineCardDetailValue,
               fine.status === 'unpaid' && styles.fineCardDetailValueAlert,
-              isDarkMode && fine.status === 'unpaid' && { color: '#FCA5A5' },
-              isDarkMode && fine.status !== 'unpaid' && { color: COLORS.textLight }
             ]}>{fine.dueDate}</Text>
           </View>
           
           <View style={styles.fineCardDetailRow}>
-            <Text style={[
-              styles.fineCardDetailLabel,
-              isDarkMode && { color: '#9CA3AF' }
-            ]}>Status:</Text>
+            <Text style={styles.fineCardDetailLabel}>Status:</Text>
             <View style={[styles.fineStatusBadge, { backgroundColor: statusColor + '20' }]}>
               <Text style={[styles.fineStatusText, { color: statusColor }]}>
                 {fine.status.charAt(0).toUpperCase() + fine.status.slice(1)}
@@ -194,16 +151,12 @@ const FilterChip: React.FC<{
   isActive: boolean;
   onPress: () => void;
 }> = ({ label, isActive, onPress }) => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   return (
     <TouchableOpacity
       style={[
         styles.filterChip,
         isActive && { backgroundColor: COLORS.primary },
-        !isActive && isDarkMode && { backgroundColor: '#374151' },
-        !isActive && !isDarkMode && { backgroundColor: COLORS.white }
+        !isActive && { backgroundColor: COLORS.white }
       ]}
       onPress={onPress}
       activeOpacity={0.7}
@@ -211,8 +164,7 @@ const FilterChip: React.FC<{
       <Text style={[
         styles.filterChipText,
         isActive && { color: COLORS.white },
-        !isActive && isDarkMode && { color: COLORS.textLight },
-        !isActive && !isDarkMode && { color: COLORS.text }
+        !isActive && { color: COLORS.text }
       ]}>
         {label}
       </Text>
@@ -222,16 +174,10 @@ const FilterChip: React.FC<{
 
 // Empty state component
 const EmptyState: React.FC<{ message: string }> = ({ message }) => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  
   return (
     <View style={styles.emptyState}>
-      <Icon name="file-document-outline" size={48} color={isDarkMode ? '#4B5563' : '#D1D5DB'} />
-      <Text style={[
-        styles.emptyStateText,
-        isDarkMode && { color: '#9CA3AF' }
-      ]}>
+      <Icon name="file-document-outline" size={48} color={COLORS.textLight} />
+      <Text style={styles.emptyStateText}>
         {message}
       </Text>
     </View>
@@ -239,8 +185,6 @@ const EmptyState: React.FC<{ message: string }> = ({ message }) => {
 };
 
 const FinesScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
   
   // Sample fine data
   const fines: FineDetailsProps[] = [
@@ -304,38 +248,30 @@ const FinesScreen: React.FC = () => {
     : fines.filter(fine => fine.status === filter);
   
   return (
-    <View style={[
-      styles.container,
-      { backgroundColor: isDarkMode ? COLORS.darkMode : COLORS.background }
-    ]}>
+    <View style={[styles.container]}>
       {/* Filter Chips */}
-      
       <View style={styles.filterContainer}>
-  <FilterChip 
-    label="All" 
-    isActive={filter === 'all'} 
-    onPress={() => setFilter('all')} 
-  />
-  <FilterChip 
-    label="Unpaid" 
-    isActive={filter === 'unpaid'} 
-    onPress={() => setFilter('unpaid')} 
-  />
-  <FilterChip 
-    label="Appealed" 
-    isActive={filter === 'appealed'} 
-    onPress={() => setFilter('appealed')} 
-  />
-  <FilterChip 
-    label="Paid" 
-    isActive={filter === 'paid'} 
-    onPress={() => setFilter('paid')} 
-  />
-</View>
-
-
-
-      
+        <FilterChip 
+          label="All" 
+          isActive={filter === 'all'} 
+          onPress={() => setFilter('all')} 
+        />
+        <FilterChip 
+          label="Unpaid" 
+          isActive={filter === 'unpaid'} 
+          onPress={() => setFilter('unpaid')} 
+        />
+        <FilterChip 
+          label="Appealed" 
+          isActive={filter === 'appealed'} 
+          onPress={() => setFilter('appealed')} 
+        />
+        <FilterChip 
+          label="Paid" 
+          isActive={filter === 'paid'} 
+          onPress={() => setFilter('paid')} 
+        />
+      </View>
       
       {/* Fine List */}
       <ScrollView style={styles.finesList}>
