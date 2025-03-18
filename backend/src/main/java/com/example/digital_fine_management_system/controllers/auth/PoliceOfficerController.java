@@ -40,4 +40,11 @@ public class PoliceOfficerController {
         return ResponseEntity.ok("Police officer record replaced successfully");
     }
 
+    @DeleteMapping("/{badgeID}")
+    public ResponseEntity<String> deletePoliceOfficer(@PathVariable String badgeID) {
+        policeOfficerService.deletePoliceOfficer(badgeID);
+        return ResponseEntity.ok("Police Officer and associated User with Badge ID " + badgeID + " have been deleted.");
+    }
+
+
 }
