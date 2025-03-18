@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 public class PoliceOfficerRequestDTO {
 
@@ -15,7 +13,7 @@ public class PoliceOfficerRequestDTO {
     @Size(min = 3, max = 50, message = "Full name must be between 3 and 50 characters")
     private String fullName;
 
-    @NotBlank
+    @NotBlank(message = "Username is required")
     private String username;
 
     @NotBlank(message = "Email is required")
@@ -26,17 +24,16 @@ public class PoliceOfficerRequestDTO {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
-    @NotBlank(message = "Police ID is required")
-    @Size(min = 1, max = 20, message = "Police ID must be between 1 and 20 characters")
-    private String policeId;
+    @NotBlank(message = "Badge ID is required") // Represents police officer's unique ID
+    @Size(min = 1, max = 20, message = "Badge ID must be between 1 and 20 characters")
+    private String badgeID;
 
     @NotBlank(message = "Address is required")
     private String address;
 
     @NotBlank(message = "Telephone number is required")
-    private String telephoneNumber;
+    private String telephone;
 
-    @NotNull(message = "Patrol locations cannot be null")
-    private List<String> patrolLocations;
-
+    @NotBlank(message = "Patrol locations are required")
+    private String patrolLocations; // Stored as a single comma-separated string
 }
