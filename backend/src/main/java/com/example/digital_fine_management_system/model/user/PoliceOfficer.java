@@ -16,6 +16,11 @@ import lombok.experimental.SuperBuilder;
 @PrimaryKeyJoinColumn(name = "user_id")
 public class PoliceOfficer extends User {
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "id", referencedColumnName = "id") // Ensuring User ID is used
+    private User user;
+
+
     @Column(unique = true, nullable = false)
     @NotBlank(message = "Badge ID cannot be blank")
     private String badgeID;
