@@ -5,16 +5,20 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 // Using react-native-vector-icons
 
 const ProfileScreen: React.FC = () => {
+  const patrolAreas = ["Gampaha", "Kadawatha", "Ganemulla", "Ragama"];
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Heading */}
+      <Text style={styles.heading}>Officer Details</Text>
+
       {/* Profile Card */}
       <View style={styles.card}>
         <View style={styles.profileHeader}>
           <Image
-  source={require('../../assets/images/profile.jpg')} 
-  style={styles.profileImage}
-/>
-
+            source={require('../../assets/images/profile.jpg')}
+            style={styles.profileImage}
+          />
           <Text style={styles.name}>Duvindu Nimsara</Text>
           <Text style={styles.role}>Traffic officer</Text>
         </View>
@@ -39,6 +43,14 @@ const ProfileScreen: React.FC = () => {
             <Icon name="lock-outline" size={20} color="gray" />
           </View>
         </View>
+
+        {/* Patrol Areas Section */}
+        <View style={styles.patrolAreaContainer}>
+          <Text style={styles.patrolTitle}>Assigned Patrol Areas</Text>
+          {patrolAreas.map((area, index) => (
+            <Text key={index} style={styles.patrolArea}>{area}</Text>
+          ))}
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -46,6 +58,7 @@ const ProfileScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "white", padding: 16, justifyContent: "center" },
+  heading: { fontSize: 24, fontWeight: "bold", color: "black", marginBottom: 20, textAlign: "center" },
   card: { backgroundColor: "white", padding: 16, borderRadius: 12, shadowOpacity: 0.1, alignItems: "center" },
   profileHeader: { alignItems: "center", marginBottom: 16 },
   profileImage: { width: 150, height: 150, borderRadius: 100 },
@@ -63,6 +76,9 @@ const styles = StyleSheet.create({
   },
   inputField: { flex: 1, fontSize: 16, color: "black" },
   icon: { marginRight: 10 },
+  patrolAreaContainer: { width: "100%", marginTop: 20 },
+  patrolTitle: { fontSize: 18, fontWeight: "bold", color: "black", marginBottom: 10 },
+  patrolArea: { fontSize: 16, color: "gray", marginBottom: 5 },
 });
 
 export default ProfileScreen;
