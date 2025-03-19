@@ -18,6 +18,41 @@ const styles = StyleSheet.create({
       flex: 1,
       padding: 16,
     },
+    // Add these styles to your existing IndexStyles.js file
+
+headerRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+// Add these styles to your existing IndexStyles.js file
+
+headerContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 24,
+  paddingTop: 8,
+},
+profileSection: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+userInfo: {
+  marginLeft: 12,
+},
+settingsButton: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: COLORS.white,
+  justifyContent: 'center',
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 3,
+  elevation: 3,
+},
+
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',

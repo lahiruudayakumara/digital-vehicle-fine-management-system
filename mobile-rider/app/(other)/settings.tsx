@@ -1,8 +1,8 @@
 //settings.tsx
 
+import styles from '@/app/settingsStyles';
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Platform, StatusBar } from 'react-native';
-import styles from '../settingsStyles';
 
 // Define types for settings
 interface NotificationSettings {
@@ -74,7 +74,7 @@ const SettingsScreen: React.FC = () => {
       
       
       
-      <ScrollView style={styles.scrollView}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 70 }}>
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>

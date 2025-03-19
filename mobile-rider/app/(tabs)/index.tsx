@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import from react-native-vector-icons
+import { useRouter } from 'expo-router';
 import styles, {COLORS} from '../IndexStyles';
 
 // Types for our component props
@@ -21,6 +22,7 @@ interface FineCardProps {
 interface UserProfileProps {
   userName: string;
   profileImage?: string;
+  onSettingsPress: () => void;
 }
 
 // Notification component
@@ -89,28 +91,46 @@ const QuickActionButton: React.FC<{ title: string, icon: React.ReactNode, onPres
   );
 };
 
-// User profile component
-const UserProfileHeader: React.FC<UserProfileProps> = ({ userName, profileImage }) => {
+// User profile component with settings button
+const UserProfileHeader: React.FC<UserProfileProps> = ({ userName, profileImage, onSettingsPress }) => {
   return (
-    <View style={styles.header}>
-      <View>
-        <Text style={styles.welcomeText}>Welcome back,</Text>
-        <Text style={styles.userName}>{userName}</Text>
+    <View style={styles.headerContainer}>
+      {/* Left side - Profile image */}
+      <View style={styles.profileSection}>
+        <View style={styles.profileImageContainer}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          ) : (
+            <View style={[styles.profileIcon, { backgroundColor: COLORS.primary }]}> 
+              <Text style={styles.profileInitials}>{userName.charAt(0)}</Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.userInfo}>
+          <Text style={styles.welcomeText}>Welcome back,</Text>
+          <Text style={styles.userName}>{userName}</Text>
+        </View>
       </View>
-      <View style={styles.profileImageContainer}>
-        {profileImage ? (
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
-        ) : (
-          <View style={[styles.profileIcon, { backgroundColor: COLORS.primary }]}> 
-            <Text style={styles.profileInitials}>{userName.charAt(0)}</Text>
-          </View>
-        )}
-      </View>
+      
+      {/* Right side - Settings button */}
+      <TouchableOpacity 
+        style={styles.settingsButton} 
+        onPress={onSettingsPress}
+      >
+        <Icon name="cog" size={24} color={COLORS.primary} />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const HomeScreen: React.FC = () => {
+  const router = useRouter();
+  
+  const navigateToSettings = () => {
+    router.push('/(other)/settings');
+  };
+  
   return (
     <ScrollView 
       style={[ 
@@ -118,8 +138,12 @@ const HomeScreen: React.FC = () => {
         { backgroundColor: COLORS.background }
       ]}
     >
-      {/* Welcome Header */}
-      <UserProfileHeader userName="Oliver Hayes" profileImage="https://pub-24990f2f31744f558e74dd8d73328de5.r2.dev/20597.jpg" />
+      {/* Welcome Header with Settings Button */}
+      <UserProfileHeader 
+        userName="Oliver Hayes" 
+        profileImage="https://pub-24990f2f31744f558e74dd8d73328de5.r2.dev/20597.jpg" 
+        onSettingsPress={navigateToSettings}
+      />
 
       {/* Fine Summary */}
       <View style={styles.section}>

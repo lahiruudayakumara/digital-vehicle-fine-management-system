@@ -1,12 +1,12 @@
 import { View, Text, Image } from 'react-native';
 import { Link } from 'expo-router';
-import { styles } from '../splashStyles';
+import styles from '../splashStyles';
 
 export default function SplashScreen() {
   return (
     <View style={styles.container}>
       
-      <Text style={styles.title}>Digital Vehicle Fine Management</Text>
+      <Text style={styles.title}>FineMate - Scan, Fine, and Drive Safe!</Text>
       
       <View style={styles.buttonContainer}>
   <Link href={{ pathname: "/(auth)/login" }} style={styles.button}>
