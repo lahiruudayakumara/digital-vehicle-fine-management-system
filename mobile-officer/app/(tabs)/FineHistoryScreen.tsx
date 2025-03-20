@@ -2,22 +2,24 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 const FineHistoryScreen: React.FC = () => {
   const fineData = [
-    { driverName: 'Abram Vaccaro', licenseNumber: 'ABX-2938-PLIQ', vehicleNumber: 'CAB-1234', date: '2025/02/20', category: 'SPD', fine: 'Rs 1000', status: 'Pending' },
-    { driverName: 'Skyler Bator', licenseNumber: 'ZKY-7451-WNM', vehicleNumber: 'WP-ABC-5678', date: '2025/02/20', category: 'TSV', fine: 'Rs 1500', status: 'Pending' },
-    { driverName: 'Liam Grace', licenseNumber: 'LGR-9824-ABC', vehicleNumber: 'LMN-9876', date: '2025/03/01', category: 'SPD', fine: 'Rs 2000', status: 'Completed' },
-    { driverName: 'Olivia Johnson', licenseNumber: 'OJN-4672-XYZ', vehicleNumber: 'ABC-1324', date: '2025/03/05', category: 'RSP', fine: 'Rs 1200', status: 'Pending' },
-    { driverName: 'Noah Parker', licenseNumber: 'NPK-8357-KLP', vehicleNumber: 'XYZ-7777', date: '2025/03/10', category: 'TSV', fine: 'Rs 1800', status: 'Completed' },
-    { driverName: 'Emma Williams', licenseNumber: 'EMW-1549-GHQ', vehicleNumber: 'DEF-5678', date: '2025/03/15', category: 'SPD', fine: 'Rs 2500', status: 'Pending' },
-    { driverName: 'Ava Davis', licenseNumber: 'AVD-2368-JKQ', vehicleNumber: 'GHI-2234', date: '2025/03/18', category: 'RSP', fine: 'Rs 3000', status: 'Completed' },
-    { driverName: 'Mason Brown', licenseNumber: 'MNB-5564-PRT', vehicleNumber: 'JKL-9988', date: '2025/03/20', category: 'TSV', fine: 'Rs 1100', status: 'Pending' },
-    { driverName: 'Isabella Moore', licenseNumber: 'ISM-7893-KTQ', vehicleNumber: 'MNO-1122', date: '2025/03/25', category: 'SPD', fine: 'Rs 1300', status: 'Completed' },
-    { driverName: 'Lucas Harris', licenseNumber: 'LHR-9825-WNV', vehicleNumber: 'PQR-6677', date: '2025/03/28', category: 'RSP', fine: 'Rs 1600', status: 'Pending' },
+    { driverName: 'Abram Vaccaro', licenseNumber: 'ABX-2938-PLIQ', vehicleNumber: 'CAB-1234', date: '2025/02/20', Location: 'Colombo', category: 'SPD', fine: 'Rs 1000', status: 'Pending' },
+    { driverName: 'Skyler Bator', licenseNumber: 'ZKY-7451-WNM', vehicleNumber: 'WP-ABC-5678', date: '2025/02/20', Location: 'Galle', category: 'TSV', fine: 'Rs 1500', status: 'Pending' },
+    { driverName: 'Liam Grace', licenseNumber: 'LGR-9824-ABC', vehicleNumber: 'LMN-9876', date: '2025/03/01', Location: 'Kandy', category: 'SPD', fine: 'Rs 2000', status: 'Completed' },
+    { driverName: 'Olivia Johnson', licenseNumber: 'OJN-4672-XYZ', vehicleNumber: 'ABC-1324', date: '2025/03/05', Location: 'Jaffna', category: 'RSP', fine: 'Rs 1200', status: 'Pending' },
+    { driverName: 'Noah Parker', licenseNumber: 'NPK-8357-KLP', vehicleNumber: 'XYZ-7777', date: '2025/03/10', Location: 'Matara', category: 'TSV', fine: 'Rs 1800', status: 'Completed' },
+    { driverName: 'Emma Williams', licenseNumber: 'EMW-1549-GHQ', vehicleNumber: 'DEF-5678', date: '2025/03/15', Location: 'Negombo', category: 'SPD', fine: 'Rs 2500', status: 'Pending' },
+    { driverName: 'Ava Davis', licenseNumber: 'AVD-2368-JKQ', vehicleNumber: 'GHI-2234', date: '2025/03/18', Location: 'Kurunegala', category: 'RSP', fine: 'Rs 3000', status: 'Completed' },
+    { driverName: 'Mason Brown', licenseNumber: 'MNB-5564-PRT', vehicleNumber: 'JKL-9988', date: '2025/03/20', Location: 'Anuradhapura', category: 'TSV', fine: 'Rs 1100', status: 'Pending' },
+    { driverName: 'Isabella Moore', licenseNumber: 'ISM-7893-KTQ', vehicleNumber: 'MNO-1122', date: '2025/03/25', Location: 'Ratnapura', category: 'SPD', fine: 'Rs 1300', status: 'Completed' },
+    { driverName: 'Lucas Harris', licenseNumber: 'LHR-9825-WNV', vehicleNumber: 'PQR-6677', date: '2025/03/28', Location: 'Badulla', category: 'RSP', fine: 'Rs 1600', status: 'Pending' },
   ];
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [openDropdown, setOpenDropdown] = useState(false);
   const [filterType, setFilterType] = useState<'name' | 'license' | 'date'>('name');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,19 +31,20 @@ const FineHistoryScreen: React.FC = () => {
     return `${year}/${month}/${day}`;
   };
 
+  const filterOptions = [
+    { label: 'Search by Driver Name', value: 'name' },
+    { label: 'Search by Driver License Number', value: 'license' },
+    { label: 'Search by fine Date', value: 'date' },
+  ];
+
+  // Removed duplicate formatDate function
+
   const filteredData = fineData.filter((item) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
-    switch (filterType) {
-      case 'name':
-        return item.driverName.toLowerCase().includes(query);
-      case 'license':
-        return item.licenseNumber.toLowerCase().includes(query);
-      case 'date':
-        return item.date.toLowerCase().includes(query);
-      default:
-        return true;
-    }
+    return filterType === 'name' ? item.driverName.toLowerCase().includes(query) :
+      filterType === 'license' ? item.licenseNumber.toLowerCase().includes(query) :
+        item.date.includes(query);
   });
 
   const onDateChange = (event: any, selected?: Date) => {
@@ -72,7 +75,7 @@ const FineHistoryScreen: React.FC = () => {
     );
   };
 
-  const renderCard = ({ item }: { item: { driverName: string; licenseNumber: string; vehicleNumber: string; date: string; category: string; fine: string; status: string } }) => (
+  const renderCard = ({ item }: { item: { driverName: string; licenseNumber: string; vehicleNumber: string; date: string; Location: string; category: string; fine: string; status: string } }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Driver: {item.driverName}</Text>
       <Text>License Number: {item.licenseNumber}</Text>
@@ -94,41 +97,36 @@ const FineHistoryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Fine History</Text>
-      </View>
+      <Text style={[styles.title, { textAlign: 'center' }]}>Fine History</Text>
 
-      {/* Search Bar and Filter Type Selector */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={`Search by ${filterType === 'name' ? 'name' : filterType === 'license' ? 'license' : 'date'}...`}
-          value={filterType === 'date' ? searchQuery : undefined}
-          onChangeText={(text) => setSearchQuery(text)}
-          onFocus={() => filterType === 'date' && setShowDatePicker(true)}
-          editable={filterType !== 'date'}
+      <DropDownPicker
+        open={openDropdown}
+        value={filterType}
+        items={filterOptions}
+        setOpen={setOpenDropdown}
+        setValue={setFilterType}
+        placeholder="Select Filter"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+      />
+
+      <TextInput
+        style={styles.searchInput}
+        placeholder={`Search by ${filterType}`}
+        value={filterType === 'date' ? searchQuery : undefined}
+        onChangeText={(text) => setSearchQuery(text)}
+        onFocus={() => filterType === 'date' && setShowDatePicker(true)}
+        editable={filterType !== 'date'}
+      />
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          onChange={onDateChange}
         />
-        <View style={styles.filterButtons}>
-          <TouchableOpacity
-            style={[styles.filterButton, filterType === 'name' && styles.activeFilter]}
-            onPress={() => setFilterType('name')}
-          >
-            <Text style={styles.filterButtonText}>Name</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.filterButton, filterType === 'license' && styles.activeFilter]}
-            onPress={() => setFilterType('license')}
-          >
-            <Text style={styles.filterButtonText}>License</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.filterButton, filterType === 'date' && styles.activeFilter]}
-            onPress={() => setFilterType('date')}
-          >
-            <Text style={styles.filterButtonText}>Date</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      )}
 
       {/* Date Picker */}
       {showDatePicker && (
@@ -160,18 +158,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  dropdown: {
+    borderColor: '#ccc',
+    borderWidth: 2,
+    borderRadius: 5,
+    paddingHorizontal: 0,
+    height: 40,
+  },
+  dropdownContainer: {
+    borderColor: '#ccc',
+    borderWidth: 5,
+    borderRadius: 5,
+    marginBottom: 5, // Adds space below the dropdown
+  },
+
   header: {
-    padding: 10,
+    padding: 0,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: 'bold'
+    ,
   },
   searchContainer: {
     padding: 10,
+    marginTop: 5, // Adjust this value for more or less spacing
   },
+
   searchInput: {
     height: 40,
     borderColor: '#ccc',
