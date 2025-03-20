@@ -1,9 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Image, Alert } from 'react-native';
+import {
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+
 import DropDownPicker from 'react-native-dropdown-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Link } from "expo-router";
+import { RootState } from "@/stores/reducers";
+import { SafeAreaView } from "react-native-safe-area-context";
+import ScannerScreen from "../scanner/scanner";
+import { useCameraPermissions } from "expo-camera";
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from "react-redux";
 
 const HomeScreen: React.FC = () => {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -19,7 +35,6 @@ const HomeScreen: React.FC = () => {
 
   const navigation = useNavigation();
 
-  // Removed duplicate validateForm function
 
   const handleFormSubmit = () => {
     if (validateForm()) {
@@ -122,22 +137,48 @@ const HomeScreen: React.FC = () => {
   // Handle form submission
   // Removed duplicate handleFormSubmit function
 
+  const [permission, requestPermission] = useCameraPermissions();
+
+  const isPermissionGranted = Boolean(permission?.granted);
+
+  const [isScannerVisible, setScannerVisible] = useState<boolean>(false);
+
+  const scannedData = useSelector((state: RootState) => state.scanner);
+  console.log("scannedData", scannedData);
+
+  useEffect(() => {
+    if (scannedData) {
+      setScannerVisible(false);
+      setModalVisible(true);
+    }
+  }
+  , [scannedData]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <Image source={require('../../assets/images/fine-logo.jpg')} style={styles.logo} />
+      {/* App Logo */}
+      <Image
+        source={require("../../assets/images/fine-logo.jpg")}
+        style={styles.logo}
+      /> 657a4d3 (add camera permissions and integrate QR code scanner modal in HomeScreen)
 
       <View style={styles.card}>
         <Text style={styles.title}>Create Fine</Text>
+          <TouchableOpacity
+            style={[styles.button, styles.outlineButton]}
+            onPress={() => setModalVisible(true)}
+          >
+            <Icon name="pencil-outline" size={22} color="#3B82F6" />
+            <Text style={styles.outlineButtonText}>Create Manually</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={() => setModalVisible(true)}>
-          <Icon name="pencil-outline" size={22} color="#3B82F6" />
-          <Text style={styles.outlineButtonText}>Create Manually</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, styles.filledButton]} onPress={() => { }}>
-          <Icon name="qrcode-scan" size={22} color="white" />
-          <Text style={styles.filledButtonText}>Scan QR Code</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.filledButton]}
+            onPress={() => setScannerVisible(true)}
+          >
+            <Icon name="qrcode-scan" size={22} color="white" />
+            <Text style={styles.filledButtonText}>Scan QR Code</Text>
+          </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -160,9 +201,6 @@ const HomeScreen: React.FC = () => {
                 <Icon name="close-circle-outline" size={28} color="red" />
               </TouchableOpacity>
             </View>
-
-            
-
             {Object.keys(formData).map((field, index) => (
               field !== 'fine' && field !== 'reason' && (
                 <View key={index} style={styles.inputGroup}>
@@ -195,10 +233,37 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.fineText}>Fine Amount: LKR {formData.fine || '0.00'}</Text>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={handleFormSubmit}>
+
+              <TouchableOpacity
+                style={[styles.button, styles.outlineButton]}
+                onPress={() => {}}
+              >
                 <Icon name="check-circle-outline" size={22} color="#3B82F6" />
                 <Text style={styles.outlineButtonText}>Create Fine</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.filledButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Icon name="close-circle-outline" size={22} color="white" />
+                <Text style={styles.filledButtonText}>Discard Fine</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isScannerVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContentScanner}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Scan QR</Text>
+              <TouchableOpacity onPress={() => setScannerVisible(false)}>
+                <Icon name="close-circle-outline" size={28} color="red" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalScanner}>
+              <ScannerScreen />
             </View>
           </View>
         </View>
@@ -213,17 +278,54 @@ const HomeScreen: React.FC = () => {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white', padding: 16, justifyContent: 'center' },
-  logo: { width: 200, height: 200, alignSelf: 'center', marginBottom: 20 },
-  card: { backgroundColor: 'white', padding: 16, borderRadius: 12, shadowOpacity: 0.1, marginBottom: 16 },
-  flexColumn: { alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold', color: 'black', marginBottom: 16 },
-  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, width: '100%', borderRadius: 8, marginBottom: 10 },
-  outlineButton: { borderWidth: 1, borderColor: '#3B82F6' },
-  outlineButtonText: { color: '#3B82F6', fontSize: 16, fontWeight: '500', marginLeft: 8 },
-  filledButton: { backgroundColor: '#3B82F6' },
-  filledButtonText: { color: 'white', fontSize: 16, fontWeight: '500', marginLeft: 8 },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 16,
+    justifyContent: "center",
+  },
+  logo: { width: 200, height: 200, alignSelf: "center", marginBottom: 20 },
+  card: {
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 12,
+    shadowOpacity: 0.1,
+    marginBottom: 16,
+  },
+  flexColumn: { alignItems: "center" },
+  title: { fontSize: 24, fontWeight: "bold", color: "black", marginBottom: 16 },
+  button: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    width: "100%",
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  outlineButton: { borderWidth: 1, borderColor: "#3B82F6" },
+  outlineButtonText: {
+    color: "#3B82F6",
+    fontSize: 16,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+  filledButton: { backgroundColor: "#3B82F6" },
+  filledButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
   input: { flex: 1, fontSize: 16 },
   searchButton: { backgroundColor: '#3B82F6', padding: 10, borderRadius: 8 },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
@@ -239,6 +341,19 @@ const styles = StyleSheet.create({
   dropdown: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
   dropdownContainer: { borderColor: '#ccc', borderRadius: 8 },
   fineText: { fontSize: 16, fontWeight: 'bold', color: '#333', marginTop: 16 },
+  modalScanner: {
+    width: 250,
+    height: 250,
+    backgroundColor: "white",
+    borderRadius: 12,
+  },
+  modalContentScanner: {
+    width: 270,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 12,
+    shadowOpacity: 0.1,
+  },
 });
 
 export default HomeScreen;
