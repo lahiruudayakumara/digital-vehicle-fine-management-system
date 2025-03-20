@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DropDownPicker from 'react-native-dropdown-picker';
+import Icon from 'react-native-vector-icons/FontAwesome';  // Import FontAwesome icons
 
 const FineHistoryScreen: React.FC = () => {
   const fineData = [
@@ -23,6 +24,19 @@ const FineHistoryScreen: React.FC = () => {
   const [filterType, setFilterType] = useState<'name' | 'license' | 'date'>('name');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedFine, setSelectedFine] = useState<any>(null);
+  const [updatedFine, setUpdatedFine] = useState({
+    driverName: '',
+    licenseNumber: '',
+    vehicleNumber: '',
+    date: '',
+    Location: '',
+    category: '',
+    fine: '',
+    status: '',
+  });
+  
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -36,8 +50,6 @@ const FineHistoryScreen: React.FC = () => {
     { label: 'Search by Driver License Number', value: 'license' },
     { label: 'Search by fine Date', value: 'date' },
   ];
-
-  // Removed duplicate formatDate function
 
   const filteredData = fineData.filter((item) => {
     if (!searchQuery) return true;
@@ -59,10 +71,7 @@ const FineHistoryScreen: React.FC = () => {
       'Delete Fine Record',
       'Are you sure you want to delete this fine record?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'OK',
           onPress: () => {
@@ -75,6 +84,21 @@ const FineHistoryScreen: React.FC = () => {
     );
   };
 
+  const handleUpdate = (item: any) => {
+    setSelectedFine(item);
+    setUpdatedFine(item);
+    setShowUpdateModal(true);
+  };
+
+  const handleSaveUpdate = () => {
+    // Update the fineData array with the updated fine details
+    const updatedData = fineData.map((fine) =>
+      fine.licenseNumber === selectedFine.licenseNumber ? updatedFine : fine
+    );
+    console.log('Updated Fine Record:', updatedData);
+    setShowUpdateModal(false);
+  };
+
   const renderCard = ({ item }: { item: { driverName: string; licenseNumber: string; vehicleNumber: string; date: string; Location: string; category: string; fine: string; status: string } }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Driver: {item.driverName}</Text>
@@ -85,10 +109,12 @@ const FineHistoryScreen: React.FC = () => {
       <Text>Fine: {item.fine}</Text>
       <Text>Status: <Text style={item.status === 'Completed' ? styles.completed : styles.pending}>{item.status}</Text></Text>
       <View style={styles.cardActions}>
-        <TouchableOpacity style={styles.updateButton}>
-          <Text style={styles.buttonText}>Update</Text>
+        <TouchableOpacity style={styles.updateButton} onPress={() => handleUpdate(item)}>
+          <Icon name="pencil" size={18} color="#007AFF" /> {/* Update Icon */}
+          <Text style={styles.updateButtonText}>Update</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item)}>
+          <Icon name="trash" size={18} color="#fff" /> {/* Delete Icon */}
           <Text style={styles.buttonText}>Delete</Text>
         </TouchableOpacity>
       </View>
@@ -128,27 +154,72 @@ const FineHistoryScreen: React.FC = () => {
         />
       )}
 
-      {/* Date Picker */}
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-          maximumDate={new Date('2025/12/31')}
-          minimumDate={new Date('2025/01/01')}
-        />
-      )}
-
-      {/* Generate Button */}
       <TouchableOpacity style={styles.generateButton}>
         <Text style={styles.generateButtonText}>Generate a Report</Text>
       </TouchableOpacity>
 
-      {/* Card Container with Scrollable Area */}
       <ScrollView style={styles.cardsContainer}>
         {filteredData.map((item, index) => renderCard({ item }))}
       </ScrollView>
+
+      {/* Update Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showUpdateModal}
+        onRequestClose={() => setShowUpdateModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Update Fine Record</Text>
+
+            <TextInput
+              style={styles.inputField}
+              placeholder="Driver Name"
+              value={updatedFine.driverName}
+              onChangeText={(text) => setUpdatedFine({ ...updatedFine, driverName: text })}
+            />
+            <TextInput
+              style={styles.inputField}
+              placeholder="License Number"
+              value={updatedFine.licenseNumber}
+              onChangeText={(text) => setUpdatedFine({ ...updatedFine, licenseNumber: text })}
+            />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Vehicle Number"
+              value={updatedFine.vehicleNumber}
+              onChangeText={(text) => setUpdatedFine({ ...updatedFine, vehicleNumber: text })}
+            />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Location"
+              value={updatedFine.Location}
+              onChangeText={(text) => setUpdatedFine({ ...updatedFine, Location: text })}
+            />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Category"
+              value={updatedFine.category}
+              onChangeText={(text) => setUpdatedFine({ ...updatedFine, category: text })}
+            />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Fine Amount"
+              value={updatedFine.fine}
+              onChangeText={(text) => setUpdatedFine({ ...updatedFine, fine: text })}
+            />
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleSaveUpdate}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.closeButton} onPress={() => setShowUpdateModal(false)}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -156,68 +227,40 @@ const FineHistoryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
+
   },
   dropdown: {
     borderColor: '#ccc',
     borderWidth: 2,
     borderRadius: 5,
     paddingHorizontal: 0,
-    height: 40,
+    height: 40
   },
   dropdownContainer: {
     borderColor: '#ccc',
     borderWidth: 5,
     borderRadius: 5,
-    marginBottom: 5, // Adds space below the dropdown
-  },
-
-  header: {
-    padding: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-
+    marginBottom: 5
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold'
-    ,
   },
-  searchContainer: {
-    padding: 10,
-    marginTop: 5, // Adjust this value for more or less spacing
-  },
-
   searchInput: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
-    marginBottom: 10,
-  },
-  filterButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  filterButton: {
-    padding: 8,
-    borderRadius: 5,
-    backgroundColor: '#f0f0f0',
-  },
-  activeFilter: {
-    backgroundColor: '#007AFF',
-  },
-  filterButtonText: {
-    color: '#333',
-    fontWeight: 'bold',
+    marginBottom: 10
   },
   cardsContainer: {
     flex: 1,
-    padding: 10,
+    padding: 10
   },
   card: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: 'white',
     padding: 15,
     marginVertical: 10,
     borderRadius: 8,
@@ -225,39 +268,47 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 3,
+    elevation: 3
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 8
   },
   cardActions: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginTop: 15,
+    marginTop: 15
   },
   updateButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#007AFF',
+    borderWidth: 2,
     padding: 10,
     borderRadius: 5,
     marginRight: 10,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  updateButtonText: {
+    color: '#007AFF',
+    fontSize: 16, fontWeight: 'bold',
+    marginLeft: 5
   },
   deleteButton: {
     backgroundColor: '#FF3B30',
     padding: 10,
     borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+    marginLeft: 5
   },
-  completed: {
-    color: 'green',
-  },
-  pending: {
-    color: 'orange',
-  },
+  completed: { color: 'green' },
+  pending: { color: 'orange' },
   generateButton: {
     backgroundColor: '#007AFF',
     padding: 10,
@@ -265,14 +316,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     width: 150,
-    alignSelf: 'flex-end', // Moves the button to the right
+    alignSelf: 'flex-end'
   },
-
-
   generateButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
+
+  // Modal styles
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+  modalContainer: { width: 300, backgroundColor: '#fff', padding: 20, borderRadius: 10 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  inputField: { height: 40, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10, marginBottom: 10 },
+  saveButton: { backgroundColor: '#007AFF', padding: 11, borderRadius: 10, alignItems: 'center' },
+  saveButtonText: { color: '#fff', fontWeight: 'bold' },
+  closeButton: { backgroundColor: 'red',padding: 10, borderRadius: 10, alignItems: 'center', marginTop: 10 },
+  closeButtonText: { color: 'white', fontWeight: 'bold' },
 });
 
 export default FineHistoryScreen;
