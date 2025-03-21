@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import styles, { COLORS } from '../finesStyles';
+import React, { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import styles, { COLORS } from "../finesStyles";
+
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 
 // Types for our component props
 interface FineDetailsProps {
@@ -12,7 +20,7 @@ interface FineDetailsProps {
   location: string;
   officerId: string;
   officerName: string;
-  status: 'paid' | 'unpaid' | 'appealed';
+  status: "paid" | "unpaid" | "appealed";
   dueDate: string;
   violationType: string;
 }
@@ -23,19 +31,20 @@ const FineListItem: React.FC<{
   onPress: () => void;
   isExpanded: boolean;
 }> = ({ fine, onPress, isExpanded }) => {
+  const router = useRouter();
 
   // Determine status color and icon name
   let statusColor, statusIconName;
   switch (fine.status) {
-    case 'paid':
+    case "paid":
       statusColor = COLORS.success;
       statusIconName = "check";
       break;
-    case 'appealed':
+    case "appealed":
       statusColor = COLORS.secondary;
       statusIconName = "clock-outline";
       break;
-    case 'unpaid':
+    case "unpaid":
     default:
       statusColor = COLORS.accent;
       statusIconName = "alert-circle-outline";
@@ -44,96 +53,123 @@ const FineListItem: React.FC<{
 
   return (
     <View style={[styles.fineCard]}>
-      <TouchableOpacity 
-        style={styles.fineCardHeader} 
+      <TouchableOpacity
+        style={styles.fineCardHeader}
         onPress={onPress}
         activeOpacity={0.7}
       >
         <View style={styles.fineCardHeaderContent}>
-          <View style={[styles.fineStatusIndicator, { backgroundColor: statusColor }]}>
+          <View
+            style={[
+              styles.fineStatusIndicator,
+              { backgroundColor: statusColor },
+            ]}
+          >
             <Icon name={statusIconName} size={16} color={COLORS.white} />
           </View>
           <View style={styles.fineCardHeaderInfo}>
-            <Text style={styles.fineDescription}>
-              {fine.description}
-            </Text>
+            <Text style={styles.fineDescription}>{fine.description}</Text>
             <Text style={styles.fineMetaInfo}>
               {fine.date} • Rs. {fine.amount.toFixed(2)}
             </Text>
           </View>
         </View>
-        
-        <Icon 
-          name={isExpanded ? "chevron-up" : "chevron-down"} 
-          size={20} 
-          color={COLORS.textLight} 
+
+        <Icon
+          name={isExpanded ? "chevron-up" : "chevron-down"}
+          size={20}
+          color={COLORS.textLight}
         />
       </TouchableOpacity>
-      
+
       {isExpanded && (
         <View style={styles.fineCardDetail}>
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Fine ID:</Text>
             <Text style={styles.fineCardDetailValue}>{fine.id}</Text>
           </View>
-          
+
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Location:</Text>
             <Text style={styles.fineCardDetailValue}>{fine.location}</Text>
           </View>
-          
+
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Officer:</Text>
-            <Text style={styles.fineCardDetailValue}>{fine.officerName} (ID: {fine.officerId})</Text>
+            <Text style={styles.fineCardDetailValue}>
+              {fine.officerName} (ID: {fine.officerId})
+            </Text>
           </View>
-          
+
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Type:</Text>
             <Text style={styles.fineCardDetailValue}>{fine.violationType}</Text>
           </View>
-          
+
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Due Date:</Text>
-            <Text style={[
-              styles.fineCardDetailValue,
-              fine.status === 'unpaid' && styles.fineCardDetailValueAlert,
-            ]}>{fine.dueDate}</Text>
+            <Text
+              style={[
+                styles.fineCardDetailValue,
+                fine.status === "unpaid" && styles.fineCardDetailValueAlert,
+              ]}
+            >
+              {fine.dueDate}
+            </Text>
           </View>
-          
+
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Status:</Text>
-            <View style={[styles.fineStatusBadge, { backgroundColor: statusColor + '20' }]}>
+            <View
+              style={[
+                styles.fineStatusBadge,
+                { backgroundColor: statusColor + "20" },
+              ]}
+            >
               <Text style={[styles.fineStatusText, { color: statusColor }]}>
                 {fine.status.charAt(0).toUpperCase() + fine.status.slice(1)}
               </Text>
             </View>
           </View>
-          
-          {fine.status === 'unpaid' && (
+
+          {fine.status === "unpaid" && (
             <View style={styles.fineCardActions}>
-              <TouchableOpacity 
-                style={[styles.fineCardButton, { backgroundColor: COLORS.primary }]}
+              <TouchableOpacity
+                style={[
+                  styles.fineCardButton,
+                  { backgroundColor: COLORS.primary },
+                ]}
                 activeOpacity={0.8}
+                onPress={() => router.replace("/payments/payment")}
               >
                 <Text style={styles.fineCardButtonText}>Pay Now</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.fineCardButton, styles.fineCardButtonOutline]}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.fineCardButtonText, { color: COLORS.primary }]}>Appeal</Text>
+                <Text
+                  style={[styles.fineCardButtonText, { color: COLORS.primary }]}
+                >
+                  Appeal
+                </Text>
               </TouchableOpacity>
             </View>
           )}
-          
-          {fine.status === 'appealed' && (
+
+          {fine.status === "appealed" && (
             <View style={styles.fineCardActions}>
-              <TouchableOpacity 
-                style={[styles.fineCardButton, { backgroundColor: COLORS.secondary }]}
+              <TouchableOpacity
+                style={[
+                  styles.fineCardButton,
+                  { backgroundColor: COLORS.secondary },
+                ]}
                 activeOpacity={0.8}
               >
-                <Text style={styles.fineCardButtonText}>View Appeal Status</Text>
+                <Text style={styles.fineCardButtonText}>
+                  View Appeal Status
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -154,16 +190,18 @@ const FilterChip: React.FC<{
       style={[
         styles.filterChip,
         isActive && { backgroundColor: COLORS.primary },
-        !isActive && { backgroundColor: COLORS.white }
+        !isActive && { backgroundColor: COLORS.white },
       ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[
-        styles.filterChipText,
-        isActive && { color: COLORS.white },
-        !isActive && { color: COLORS.text }
-      ]}>
+      <Text
+        style={[
+          styles.filterChipText,
+          isActive && { color: COLORS.white },
+          !isActive && { color: COLORS.text },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -175,125 +213,127 @@ const EmptyState: React.FC<{ message: string }> = ({ message }) => {
   return (
     <View style={styles.emptyState}>
       <Icon name="file-document-outline" size={48} color={COLORS.textLight} />
-      <Text style={styles.emptyStateText}>
-        {message}
-      </Text>
+      <Text style={styles.emptyStateText}>{message}</Text>
     </View>
   );
 };
 
 const FinesScreen: React.FC = () => {
-  
   // Sample fine data
   const fines: FineDetailsProps[] = [
     {
-      id: 'F-20250315-001',
+      id: "F-20250315-001",
       amount: 5000,
-      date: 'Mar 15, 2025',
-      description: 'Speeding in School Zone',
-      location: 'Colombo 07, Main Street',
-      officerId: 'PO-732',
-      officerName: 'Officer K. Perera',
-      status: 'unpaid',
-      dueDate: 'Mar 29, 2025',
-      violationType: 'Speeding'
+      date: "Mar 15, 2025",
+      description: "Speeding in School Zone",
+      location: "Colombo 07, Main Street",
+      officerId: "PO-732",
+      officerName: "Officer K. Perera",
+      status: "unpaid",
+      dueDate: "Mar 29, 2025",
+      violationType: "Speeding",
     },
     {
-      id: 'F-20250310-042',
+      id: "F-20250310-042",
       amount: 2500,
-      date: 'Mar 10, 2025',
-      description: 'No Parking Violation',
-      location: 'Kandy, Temple Road',
-      officerId: 'PO-419',
-      officerName: 'Officer M. Silva',
-      status: 'unpaid',
-      dueDate: 'Mar 24, 2025',
-      violationType: 'Parking'
+      date: "Mar 10, 2025",
+      description: "No Parking Violation",
+      location: "Kandy, Temple Road",
+      officerId: "PO-419",
+      officerName: "Officer M. Silva",
+      status: "unpaid",
+      dueDate: "Mar 24, 2025",
+      violationType: "Parking",
     },
     {
-      id: 'F-20250228-127',
+      id: "F-20250228-127",
       amount: 1500,
-      date: 'Feb 28, 2025',
-      description: 'Signal Violation',
-      location: 'Galle, Marine Drive',
-      officerId: 'PO-256',
-      officerName: 'Officer A. Fernando',
-      status: 'appealed',
-      dueDate: 'Mar 14, 2025',
-      violationType: 'Traffic Signal'
+      date: "Feb 28, 2025",
+      description: "Signal Violation",
+      location: "Galle, Marine Drive",
+      officerId: "PO-256",
+      officerName: "Officer A. Fernando",
+      status: "appealed",
+      dueDate: "Mar 14, 2025",
+      violationType: "Traffic Signal",
     },
     {
-      id: 'F-20250215-073',
+      id: "F-20250215-073",
       amount: 3000,
-      date: 'Feb 15, 2025',
-      description: 'Driving Without License',
-      location: 'Colombo 04, Galle Road',
-      officerId: 'PO-511',
-      officerName: 'Officer R. Wickramasinghe',
-      status: 'paid',
-      dueDate: 'Mar 01, 2025',
-      violationType: 'Documentation'
-    }
+      date: "Feb 15, 2025",
+      description: "Driving Without License",
+      location: "Colombo 04, Galle Road",
+      officerId: "PO-511",
+      officerName: "Officer R. Wickramasinghe",
+      status: "paid",
+      dueDate: "Mar 01, 2025",
+      violationType: "Documentation",
+    },
   ];
-  
+
   // State for filter and expanded fine
-  const [filter, setFilter] = useState<'all' | 'unpaid' | 'appealed' | 'paid'>('all');
+  const [filter, setFilter] = useState<"all" | "unpaid" | "appealed" | "paid">(
+    "all"
+  );
   const [expandedFineId, setExpandedFineId] = useState<string | null>(null);
-  
+
   // Filter fines based on selected filter
-  const filteredFines = filter === 'all' 
-    ? fines 
-    : fines.filter(fine => fine.status === filter);
-  
+  const filteredFines =
+    filter === "all" ? fines : fines.filter((fine) => fine.status === filter);
+
   return (
     <View style={styles.container}>
       {/* Filter Chips in a fixed height container */}
       <View style={styles.filterContainer}>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterContent}
         >
-          <FilterChip 
-            label="All" 
-            isActive={filter === 'all'} 
-            onPress={() => setFilter('all')} 
+          <FilterChip
+            label="All"
+            isActive={filter === "all"}
+            onPress={() => setFilter("all")}
           />
-          <FilterChip 
-            label="Unpaid" 
-            isActive={filter === 'unpaid'} 
-            onPress={() => setFilter('unpaid')} 
+          <FilterChip
+            label="Unpaid"
+            isActive={filter === "unpaid"}
+            onPress={() => setFilter("unpaid")}
           />
-          <FilterChip 
-            label="Appealed" 
-            isActive={filter === 'appealed'} 
-            onPress={() => setFilter('appealed')} 
+          <FilterChip
+            label="Appealed"
+            isActive={filter === "appealed"}
+            onPress={() => setFilter("appealed")}
           />
-          <FilterChip 
-            label="Paid" 
-            isActive={filter === 'paid'} 
-            onPress={() => setFilter('paid')} 
+          <FilterChip
+            label="Paid"
+            isActive={filter === "paid"}
+            onPress={() => setFilter("paid")}
           />
         </ScrollView>
       </View>
-      
+
       {/* Fine List in flexible space with contentContainerStyle */}
-      <ScrollView 
+      <ScrollView
         style={styles.finesList}
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={true}
       >
         {filteredFines.length > 0 ? (
-          filteredFines.map(fine => (
-            <FineListItem 
+          filteredFines.map((fine) => (
+            <FineListItem
               key={fine.id}
               fine={fine}
               isExpanded={expandedFineId === fine.id}
-              onPress={() => setExpandedFineId(expandedFineId === fine.id ? null : fine.id)}
+              onPress={() =>
+                setExpandedFineId(expandedFineId === fine.id ? null : fine.id)
+              }
             />
           ))
         ) : (
-          <EmptyState message={`No ${filter === 'all' ? '' : filter} fines found`} />
+          <EmptyState
+            message={`No ${filter === "all" ? "" : filter} fines found`}
+          />
         )}
       </ScrollView>
     </View>
