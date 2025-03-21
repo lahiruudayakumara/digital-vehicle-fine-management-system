@@ -1,17 +1,13 @@
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
+import SideBar from "@/components/side-bars/side-bar";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
-    return (
-        <div className="dashboard-layout">
-            <header>
-                <h1>MALABE POLICE DIVISION</h1>
-                <p>Welcome Admin_Officer</p>
-            </header>
-            <main>
-                {children}
-            </main>
-        </div>
-    );
-}
+  return (
+    <div className="flex">
+      <SideBar />
+      <main className="w-full">{children}</main>
+    </div>
+  );
+};
 
 export default DashboardLayout;

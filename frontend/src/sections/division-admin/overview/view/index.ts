@@ -1,0 +1,1 @@
+export { default as DivisionAdminDashboardView } from '@/sections/division-admin/overview/view/division-admin-dashboard-view';
