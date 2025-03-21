@@ -34,7 +34,7 @@ const OfficerManageView = () => {
     const navigate = useNavigate();
 
     const handleEdit = (officer: Officer): void => {
-        navigate("/updateofficer", { state: { officer } });
+        navigate("/dashboard/update-officer", { state: { officer } });
     };
 
     const handleDelete = (id: string) => {
@@ -72,11 +72,7 @@ const OfficerManageView = () => {
                 <header className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold text-gray-900">Motor Traffic Officer Management</h1>
                     <div className="flex space-x-4">
-                        <Link to="/addnewofficer" state={{ officer: null }}>
-                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300">
-                                Add New Officer
-                            </button>
-                        </Link>
+                        
                         <button
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
                             onClick={handleReportGeneration}
