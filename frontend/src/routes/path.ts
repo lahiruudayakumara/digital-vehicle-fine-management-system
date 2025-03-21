@@ -4,6 +4,7 @@ import DashboardPage from "@/pages/division-admin/overview/index";
 import LoginPage from "@pages/auth/division-admin/login";
 import NewOfficerPage from "@/pages/division-admin/add-new-officer/addOfficerForm";
 import OfficerManagePage from "@/pages/division-admin/officer-managment/officer-management"
+import PaymentPage from "@/pages/division-admin/payment/payment";
 import UpdateOfficerPage from "@/pages/division-admin/update-officer/update-officer-form";
 import { createBrowserRouter } from "react-router-dom";
 
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
             {
                 path: "black-list",
                 Component: BlackListPage,
+            },
+            {
+                path: "payment",
+                Component: PaymentPage,
             }
         ],
     },

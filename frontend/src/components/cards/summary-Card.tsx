@@ -1,7 +1,8 @@
 import { IconType } from "react-icons";
+import { ReactElement } from "react";
 
 interface SummaryCardProps {
-  icon: IconType;
+  icon: IconType | ReactElement;
   value: number;
   label: string;
   color: string;
@@ -9,7 +10,7 @@ interface SummaryCardProps {
 
 const SummaryCard = ({ icon: Icon, value, label, color }: SummaryCardProps) => (
   <div className="p-4 bg-white shadow rounded-lg flex flex-col items-center">
-    <Icon className={`text-${color}-500 text-3xl`} />
+    {typeof Icon === 'function' ? <Icon className={`text-${color}-500 text-3xl`} /> : Icon}
     <p className="text-lg font-bold">{value}</p>
     <span className="text-gray-500">{label}</span>
   </div>
