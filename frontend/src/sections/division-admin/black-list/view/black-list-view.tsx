@@ -27,7 +27,7 @@ const filter = [
 const AdminBlackListView = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchAttribute, setSearchAttribute] = useState("officerId");
+  const [searchAttribute, setSearchAttribute] = useState("name");
   const [filterDate, setFilterDate] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [blacklist, setBlacklist] = useState<BlacklistEntry[]>(blacklistData);

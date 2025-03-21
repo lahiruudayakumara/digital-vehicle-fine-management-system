@@ -8,11 +8,13 @@ import {
 import DateInput from "@/components/input-fields/date-inputs/date-input";
 import { FaFileDownload } from "react-icons/fa";
 import PaymentTable from "../payment-table";
+import SearchField from "@/components/input-fields/search-fields/serch-field";
 import SelectDropdown from "@/components/drop-downs/select-drop-downs/select-drop-down";
 import SummaryCard from "@/components/cards/summary-Card";
 import { paymentData } from "../payment-data";
 import saveAs from "file-saver";
 import { useState } from "react";
+import { PaymentEntry } from "@/types/payment";
 
 const filter = [
   { value: "All", name: "All" },
@@ -21,10 +23,14 @@ const filter = [
   { value: "Approved", name: "Approved" },
 ];
 
+const options = [
+  { value: "name", name: "Name" },
+  { value: "id", name: "Payment ID" },
+];
+
 function AdminPaymentView() {
   const [activeTab, setActiveTab] = useState("All");
-  const [searchAttribute, setSearchAttribute] =
-    useState<keyof (typeof paymentData)[0]>("name");
+  const [searchAttribute, setSearchAttribute] = useState("name");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDate, setFilterDate] = useState<string>("");
   const [selectedSlip, setSelectedSlip] = useState<string | null>(null);
@@ -32,7 +38,7 @@ function AdminPaymentView() {
   const filteredPayment = paymentData.filter(
     (fine) =>
       (activeTab === "All" || fine.status === activeTab) &&
-      String(fine[searchAttribute])
+      String(fine[searchAttribute as keyof PaymentEntry])
         .toLowerCase()
         .includes(searchQuery.toLowerCase()) &&
       (filterDate ? new Date(fine.date) >= new Date(filterDate) : true)
@@ -63,13 +69,13 @@ function AdminPaymentView() {
         <main className="flex-1">
           <div className="grid grid-cols-4 gap-4">
             <SummaryCard
-              icon={<WalletCards color="blue" size={44} />}
+              icon={<WalletCards size={44} />}
               value={22}
               label="Total Payments"
               color="red"
             />
             <SummaryCard
-              icon={<CreditCard color="blue" size={44} />}
+              icon={<CreditCard size={44} />}
               value={22}
               label="Online Payments"
               color="red"
@@ -97,6 +103,19 @@ function AdminPaymentView() {
                 options={filter}
                 className="w-48"
               />
+                          <SearchField
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search..."
+              className="w-64"
+            />
+            <SelectDropdown
+              id="searchAttribute"
+              value={searchAttribute}
+              onChange={setSearchAttribute}
+              options={options}
+              className="w-36"
+            />
               <DateInput
                 value={filterDate}
                 onChange={setFilterDate}
