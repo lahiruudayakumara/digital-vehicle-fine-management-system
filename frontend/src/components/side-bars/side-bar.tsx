@@ -1,6 +1,5 @@
-import { CreditCard, Home, PlusCircle, TrafficCone, User } from "lucide-react"; // Import relevant icons
-
-import { Link } from "react-router-dom";
+import { CreditCard, Home, PlusCircle, TrafficCone, User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const menuItems = [
   { path: "/dashboard", label: "Dashboard", icon: <Home size={24} /> },
@@ -11,11 +10,10 @@ const menuItems = [
 ];
 
 const SideBar = () => {
-  const menuItemStyles =
-    "p-3 bg-gradient-to-r from-blue-500 to-green-400 text-white rounded-lg hover:opacity-80 transition duration-300 block text-center";
+  const location = useLocation();
 
   return (
-    <aside className="w-1/6 h-screen bg-white p-5 shadow-lg flex flex-col items-center">
+    <aside className="md:w-[350px] h-screen bg-white p-5 shadow-lg flex flex-col items-center">
       <div className="mb-8">
         <img
           src="../src/assets/logo.jpg"
@@ -25,14 +23,19 @@ const SideBar = () => {
       </div>
       <nav className="w-full">
         <ul className="space-y-4">
-          {menuItems.map(({ path, label, icon }) => (
-            <Link key={path} to={path} className={menuItemStyles}>
-              <li className="flex items-center space-x-4">
-                {icon}
-                <span>{label}</span>
+          {menuItems.map(({ path, label, icon }) => {
+            return (
+              <li key={path} className={`rounded-lg transition font-medium text-blue-600 duration-300 hover:bg-blue-600 hover:text-white ${location.pathname === path ? "bg-blue-600 text-white" : path !== "/dashboard" ? location.pathname.includes(path)  ? "bg-blue-600 text-white" : "" : "text-black"}`}>
+                <Link
+                  to={path}
+                  className="p-3 flex items-center md:space-x-4 hover:opacity-80 w-full rounded-lg"
+                >
+                  {icon}
+                  <span className="hidden md:block">{label}</span>
+                </Link>
               </li>
-            </Link>
-          ))}
+            );
+          })}
         </ul>
       </nav>
     </aside>
