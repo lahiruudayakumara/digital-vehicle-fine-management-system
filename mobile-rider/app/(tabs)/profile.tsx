@@ -18,18 +18,6 @@ interface UserProfile {
   joinedDate: string;
 }
 
-const COLORS = {
-  primary: '#1E3A8A', // Deep Blue
-  secondary: '#FACC15', // Bright Yellow
-  accent: '#DC2626', // Traffic Red
-  background: '#F3F4F6', // Light Gray
-  white: '#FFFFFF',
-  success: '#16A34A', // Green
-  darkMode: '#111827', // Dark Gray
-  text: '#1F2937', // Dark text for light mode
-  textLight: '#F9FAFB', // Light text for dark mode
-};
-
 const ProfileScreen: React.FC = () => {
   // Mock user data
   const profile: UserProfile = {
@@ -159,14 +147,30 @@ const ProfileScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
         </View>
+
+        
         
         {/* App Version */}
         <View style={styles.versionContainer}>
+        <Text style={styles.historyButtonText}>Log Out</Text>
+        <Text style={styles.historyButtonText}></Text>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
       </ScrollView>
     </View>
   );
+};
+
+export default ProfileScreen;
+
+const COLORS = {
+  primary: '#1E3A8A', // Deep Blue
+  secondary: '#FACC15', // Bright Yellow
+  accent: '#DC2626', // Traffic Red
+  background: '#F3F4F6', // Light Gray
+  white: '#FFFFFF',
+  success: '#16A34A', // Green
+  text: '#1F2937', // Dark text for light mode
 };
 
 const styles = StyleSheet.create({
@@ -337,4 +341,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default styles;
