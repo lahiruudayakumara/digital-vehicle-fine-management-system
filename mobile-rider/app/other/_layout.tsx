@@ -86,13 +86,15 @@ export default function OtherLayout() {
         </TouchableOpacity>
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
-          onPress={() => router.push("/payments/payment")}
+          onPress={() => router.push("/(tabs)/transactions")}
         >
           <FeatherIcons name="credit-card" color="gray" size={24} />
           <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
-            Payments
+          Transactions
           </Text>
         </TouchableOpacity>
+
+
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/profile")}
