@@ -144,10 +144,9 @@ const HomeScreen: React.FC = () => {
   const [isScannerVisible, setScannerVisible] = useState<boolean>(false);
 
   const scannedData = useSelector((state: RootState) => state.scanner);
-  console.log("scannedData", scannedData);
 
   useEffect(() => {
-    if (scannedData) {
+    if (scannedData.scannedData !== null) {
       setScannerVisible(false);
       setModalVisible(true);
     }

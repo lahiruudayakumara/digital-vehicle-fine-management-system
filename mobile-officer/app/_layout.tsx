@@ -38,7 +38,6 @@ export default function RootLayout() {
   return (
     <>
       <Provider store={store}>
-        {" "}
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
