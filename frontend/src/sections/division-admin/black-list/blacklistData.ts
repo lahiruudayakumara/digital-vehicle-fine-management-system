@@ -1,0 +1,58 @@
+import { BlacklistEntry } from "@/types/blacklist";
+
+export const blacklistData: BlacklistEntry[] = [
+  {
+    id: "F2025022801",
+    name: "Abram Vaccaro",
+    license: "ABX-2938-PLQ",
+    date: "2025-02-28",
+    reason: "Multiple traffic violations",
+    points: 35,
+    status: "Blacklisted",
+  },
+  {
+    id: "F2025022002",
+    name: "Skylar Bator",
+    license: "ZKY-7451-WNM",
+    date: "2025-02-20",
+    reason: "Unpaid fines",
+    points: 0,
+    status: "Blacklisted (Immediate)",
+  },
+  {
+    id: "F2025021503",
+    name: "Gustavo Curtis",
+    license: "QRT-1123-VBX",
+    date: "2025-02-15",
+    reason: "Reckless driving",
+    points: 30,
+    status: "Blacklisted",
+  },
+  {
+    id: "F2025021004",
+    name: "Abram Vaccaro",
+    license: "LMN-9082-CKR",
+    date: "2025-02-10",
+    reason: "DUI offense",
+    points: 0,
+    status: "Blacklisted (Immediate)",
+  },
+  {
+    id: "F2025020505",
+    name: "Jakob Dokidis",
+    license: "XOP-5674-YTZ",
+    date: "2025-02-05",
+    reason: "Expired registration",
+    points: 20,
+    status: "Blacklisted (Permanent)",
+  },
+  {
+    id: "F2025020306",
+    name: "Elena Knight",
+    license: "BKL-5567-PLQ",
+    date: "2025-02-03",
+    reason: "Suspended license",
+    points: 10,
+    status: "Blacklisted (Temporary)",
+  },
+];

@@ -3,6 +3,8 @@ package com.example.digital_fine_management_system.service.auth;
 import com.example.digital_fine_management_system.dto.auth.LoginRequest;
 import com.example.digital_fine_management_system.dto.auth.LoginResponse;
 import com.example.digital_fine_management_system.dto.auth.RegisterRequest;
+import com.example.digital_fine_management_system.dto.policeOfficer.PoliceOfficerRequestDTO;
+import com.example.digital_fine_management_system.model.user.PoliceOfficer;
 import com.example.digital_fine_management_system.model.user.Role;
 import com.example.digital_fine_management_system.model.user.User;
 import com.example.digital_fine_management_system.repository.user.UserRepository;
@@ -62,6 +64,33 @@ public class AuthServiceImpl implements AuthService {
             return e.getMessage();
         }
     }
+
+    @Override
+    public String registerPoliceOfficer(PoliceOfficerRequestDTO request) {
+        try {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("User already exists");
+            }
+
+            PoliceOfficer policeOfficer = new PoliceOfficer();
+            policeOfficer.setFullName(request.getFullName());
+            policeOfficer.setUsername(request.getUsername());
+            policeOfficer.setEmail(request.getEmail());
+            policeOfficer.setPassword(PasswordUtil.encodePassword(request.getPassword()));
+            policeOfficer.setRole(Role.POLICE_OFFICER);
+            policeOfficer.setBadgeID(request.getBadgeID()); // Setting correct police officer ID
+            policeOfficer.setAddress(request.getAddress());
+            policeOfficer.setTelephone(request.getTelephone());
+            policeOfficer.setPatrolLocations(request.getPatrolLocations()); // Already a string
+
+            userRepository.save(policeOfficer);
+            return "Police officer registered successfully";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+
 
     @Override
     public LoginResponse loginUser(LoginRequest request) {

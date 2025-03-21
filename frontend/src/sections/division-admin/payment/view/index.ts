@@ -1,0 +1,1 @@
+export { default as DivisionAdminPaymentView } from '@/sections/division-admin/payment/view/payment-view';
