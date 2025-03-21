@@ -91,7 +91,8 @@ const HomeScreen: React.FC = () => {
     // Check for empty fields
     Object.keys(formData).forEach((key) => {
       if (!formData[key as keyof typeof formData].trim()) {
-        newErrors[key as keyof typeof formData] = `${key.replace(/([A-Z])/g, ' $1')} is required`;
+        newErrors[key as keyof typeof formData] = `${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()} is required`
+;
         valid = false;
       }
     });
@@ -204,9 +205,13 @@ const HomeScreen: React.FC = () => {
             {Object.keys(formData).map((field, index) => (
               field !== 'fine' && field !== 'reason' && (
                 <View key={index} style={styles.inputGroup}>
-                  <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1')} <Text style={styles.required}>*</Text></Text>
+                  <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} <Text style={styles.required}>*</Text></Text>
+
                   <TextInput
-                    placeholder={`Enter ${field.toLowerCase()}`}
+                    placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}`}
+
+                    
+
                     style={[styles.inputField, errors[field as keyof typeof errors] && { borderColor: 'red' }]}
                     value={formData[field as keyof typeof formData]}
                     onChangeText={(text) => handleInputChange(field as keyof typeof formData, text)}
@@ -229,6 +234,7 @@ const HomeScreen: React.FC = () => {
               style={styles.dropdown}
               dropDownContainerStyle={styles.dropdownContainer}
             />
+            
 
             <Text style={styles.fineText}>Fine Amount: LKR {formData.fine || '0.00'}</Text>
 
