@@ -1,7 +1,9 @@
 import {
+  Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -12,9 +14,11 @@ import React, { useState } from "react";
 import { COLORS } from "@/styles/color";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { X } from "lucide-react-native"
+import { X } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import styles from "./paymentStyles";
+import { formatCardExpiry, formatCardNumber } from "@/validation/payment";
+import { launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 
 const PaymentMethodCard: React.FC<{
   title: string;
@@ -42,13 +46,70 @@ const PaymentMethodCard: React.FC<{
 };
 
 const PaymentsScreen: React.FC = () => {
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank" | "wallet">("card");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "card" | "bank" | "wallet"
+  >("card");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
   const [cardName, setCardName] = useState("");
   const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
   const router = useRouter();
+
+  const handleCardNumberChange = (text: string) => {
+    const formattedCardNumber = formatCardNumber(text);
+    setCardNumber(formattedCardNumber);
+  };
+
+  const handleExpiryChange = (text: string) => {
+    const formattedExpiry = formatCardExpiry(text);
+    setCardExpiry(formattedExpiry);
+  };
+
+  const handleCardCvcChange = (text: string) => {
+    let cleaned = text.replace(/\D/g, "");
+    cleaned = cleaned.slice(0, 3);
+
+    setCardCvc(cleaned);
+  };
+
+  const handleCardNameChange = (text: string) => {
+    let cleaned = text.replace(/[^a-zA-Z\s]/g, "");
+    setCardName(cleaned);
+  };
+
+  const requestPermission = async () => {
+    const { status } = await requestMediaLibraryPermissionsAsync();
+    return status === 'granted';
+  };
+
+  const handleUploadReceipt = async () => {
+    const permissionGranted = await requestPermission();
+
+    if (!permissionGranted) {
+      console.log('Permission to access media library denied');
+      return;
+    }
+
+    // Launch image picker
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      if (result.assets && result.assets[0]?.fileSize && result.assets[0].fileSize > MAX_FILE_SIZE) {
+        Alert.alert('File too large', 'The selected image exceeds the 10MB size limit. Please select a smaller image.');
+        return;
+      }
+      setUploadedReceipt(result.assets[0].uri);
+    }
+  };
+
+  const handleRemoveReceipt = () => {
+    setUploadedReceipt(null);
+  };
 
   const renderPaymentForm = () => {
     switch (paymentMethod) {
@@ -64,7 +125,7 @@ const PaymentsScreen: React.FC = () => {
                 placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
                 value={cardNumber}
-                onChangeText={setCardNumber}
+                onChangeText={handleCardNumberChange}
               />
             </View>
             <View style={styles.horizontalInputs}>
@@ -75,7 +136,8 @@ const PaymentsScreen: React.FC = () => {
                   placeholder="MM/YY"
                   placeholderTextColor="#9CA3AF"
                   value={cardExpiry}
-                  onChangeText={setCardExpiry}
+                  keyboardType="numeric"
+                  onChangeText={handleExpiryChange}
                 />
               </View>
               <View style={[styles.inputGroup, { flex: 1 }]}>
@@ -87,7 +149,7 @@ const PaymentsScreen: React.FC = () => {
                   keyboardType="numeric"
                   secureTextEntry
                   value={cardCvc}
-                  onChangeText={setCardCvc}
+                  onChangeText={handleCardCvcChange}
                 />
               </View>
             </View>
@@ -98,7 +160,7 @@ const PaymentsScreen: React.FC = () => {
                 placeholder="John Doe"
                 placeholderTextColor="#9CA3AF"
                 value={cardName}
-                onChangeText={setCardName}
+                onChangeText={handleCardNameChange}
               />
             </View>
             <TouchableOpacity
@@ -143,7 +205,7 @@ const PaymentsScreen: React.FC = () => {
             </View>
             <View style={styles.uploadSection}>
               <Text style={styles.uploadTitle}>Upload Payment Receipt</Text>
-              <TouchableOpacity style={styles.uploadButton} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.uploadButton} onPress={handleUploadReceipt} activeOpacity={0.7}>
                 <Icon name="upload" size={24} color={COLORS.text} />
                 <Text style={styles.uploadButtonText}>
                   {uploadedReceipt ? "Change Receipt" : "Upload Receipt"}
@@ -158,7 +220,7 @@ const PaymentsScreen: React.FC = () => {
                   />
                   <View style={styles.receiptInfo}>
                     <Text style={styles.receiptName}>Receipt-12345.jpg</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleRemoveReceipt} activeOpacity={0.7}>
                       <Text style={styles.removeReceipt}>Remove</Text>
                     </TouchableOpacity>
                   </View>
@@ -215,7 +277,8 @@ const PaymentsScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text style={styles.walletNote}>
-              You will be redirected to the selected wallet app to complete the payment
+              You will be redirected to the selected wallet app to complete the
+              payment
             </Text>
           </View>
         );
@@ -227,73 +290,85 @@ const PaymentsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
+      <KeyboardAvoidingView
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.header}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Text style={styles.screenTitle}>Payment</Text>
-            <TouchableOpacity
-            onPress={() => router.replace("/fines")}
-            activeOpacity={0.7}
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <View style={styles.header}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
-            <X size={24} color={COLORS.text} />
-            </TouchableOpacity>
+              <Text style={styles.screenTitle}>Payment</Text>
+              <TouchableOpacity
+                onPress={() => router.replace("/fines")}
+                activeOpacity={0.7}
+              >
+                <X size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.fineSummary}>
+              <Text style={styles.fineAmount}>Rs. 5,000.00</Text>
+              <Text style={styles.fineDescription}>
+                Fine ID: F-20250315-001
+              </Text>
+            </View>
           </View>
-          <View style={styles.fineSummary}>
-            <Text style={styles.fineAmount}>Rs. 5,000.00</Text>
-            <Text style={styles.fineDescription}>Fine ID: F-20250315-001</Text>
-          </View>
-        </View>
 
-        <View style={styles.paymentMethods}>
-          <Text style={styles.sectionTitle}>Payment Method</Text>
-          <View style={styles.paymentMethodsRow}>
-            <PaymentMethodCard
-              title="Card"
-              icon={
-                <Icon
-                  name="credit-card"
-                  size={24}
-                  color={paymentMethod === "card" ? "black" : COLORS.text}
-                />
-              }
-              isActive={paymentMethod === "card"}
-              onPress={() => setPaymentMethod("card")}
-            />
-            <PaymentMethodCard
-              title="Bank"
-              icon={
-                <Icon
-                  name="building"
-                  size={24}
-                  color={paymentMethod === "bank" ? "black" : COLORS.text}
-                />
-              }
-              isActive={paymentMethod === "bank"}
-              onPress={() => setPaymentMethod("bank")}
-            />
-            <PaymentMethodCard
-              title="Wallet"
-              icon={
-                <Icon
-                  name="money"
-                  size={24}
-                  color={paymentMethod === "wallet" ? "black" : COLORS.text}
-                />
-              }
-              isActive={paymentMethod === "wallet"}
-              onPress={() => setPaymentMethod("wallet")}
-            />
+          <View style={styles.paymentMethods}>
+            <Text style={styles.sectionTitle}>Payment Method</Text>
+            <View style={styles.paymentMethodsRow}>
+              <PaymentMethodCard
+                title="Card"
+                icon={
+                  <Icon
+                    name="credit-card"
+                    size={24}
+                    color={paymentMethod === "card" ? "black" : COLORS.text}
+                  />
+                }
+                isActive={paymentMethod === "card"}
+                onPress={() => setPaymentMethod("card")}
+              />
+              <PaymentMethodCard
+                title="Bank"
+                icon={
+                  <Icon
+                    name="building"
+                    size={24}
+                    color={paymentMethod === "bank" ? "black" : COLORS.text}
+                  />
+                }
+                isActive={paymentMethod === "bank"}
+                onPress={() => setPaymentMethod("bank")}
+              />
+              <PaymentMethodCard
+                title="Wallet"
+                icon={
+                  <Icon
+                    name="money"
+                    size={24}
+                    color={paymentMethod === "wallet" ? "black" : COLORS.text}
+                  />
+                }
+                isActive={paymentMethod === "wallet"}
+                onPress={() => setPaymentMethod("wallet")}
+              />
+            </View>
           </View>
-        </View>
 
-        {renderPaymentForm()}
-      </ScrollView>
+          {renderPaymentForm()}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
-
 
 export default PaymentsScreen;
