@@ -36,6 +36,7 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
 
 
+  
   const handleFormSubmit = () => {
     if (validateForm()) {
       Alert.alert('Success', 'Fine created successfully!', [
@@ -44,7 +45,7 @@ const HomeScreen: React.FC = () => {
           onPress: () => {
             setModalVisible(false);
             setFormData({ driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' });
-            navigation.navigate('FineHistory'); // Replace 'FineHistory' with your actual screen name
+            navigation.navigate('FineHistory' as never); // Replace 'FineHistory' with your actual route name
           },
         },
       ]);
@@ -235,7 +236,7 @@ const HomeScreen: React.FC = () => {
 
               <TouchableOpacity
                 style={[styles.button, styles.outlineButton]}
-                onPress={() => {}}
+                onPress={handleFormSubmit}
               >
                 <Icon name="check-circle-outline" size={22} color="#3B82F6" />
                 <Text style={styles.outlineButtonText}>Create Fine</Text>
@@ -270,10 +271,6 @@ const HomeScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-// Styles remain unchanged
-
-// Removed duplicate export statement
 
 
 const styles = StyleSheet.create({
