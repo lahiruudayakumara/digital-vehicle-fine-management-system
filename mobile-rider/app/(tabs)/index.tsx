@@ -128,7 +128,7 @@ const HomeScreen: React.FC = () => {
   const router = useRouter();
   
   const navigateToSettings = () => {
-    router.push('/(other)/settings');
+    router.push('/other/settings');
   };
   
   return (
