@@ -1,4 +1,5 @@
 import AdminDashboard from "@routes/section/divisional-admin-dashboard";
+import BlackListPage from "@/pages/division-admin/black-list/black-list";
 import DashboardPage from "@/pages/division-admin/overview/index";
 import LoginPage from "@pages/auth/division-admin/login";
 import NewOfficerPage from "@/pages/division-admin/add-new-officer/addOfficerForm";
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
             {
                 path: "update-officer",
                 Component: UpdateOfficerPage,
+            },
+            {
+                path: "black-list",
+                Component: BlackListPage,
             }
         ],
     },
