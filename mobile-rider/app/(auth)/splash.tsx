@@ -1,6 +1,6 @@
 import { View, Text, Image } from 'react-native';
 import { Link } from 'expo-router';
-import styles from '../splashStyles';
+import styles from './splashStyles';
 
 export default function SplashScreen() {
   return (

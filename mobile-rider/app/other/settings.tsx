@@ -11,8 +11,7 @@ import {
   View,
 } from "react-native";
 import React, { useState } from "react";
-
-import styles from "@/app/settingsStyles";
+import styles from "./settingsStyles";
 
 // Define types for settings
 interface NotificationSettings {

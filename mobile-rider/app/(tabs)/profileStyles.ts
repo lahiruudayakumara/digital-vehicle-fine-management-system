@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
-import { COLORS } from './paymentStyles'; // Importing the colors from your preferred styles
+import { COLORS } from '../payments/paymentStyles'; // Importing the colors from your preferred styles
 
 const styles = StyleSheet.create({
   container: {

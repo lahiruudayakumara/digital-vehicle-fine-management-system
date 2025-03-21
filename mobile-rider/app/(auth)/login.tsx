@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import styles from '../loginStyles';
+import styles from './loginStyles';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Platform, StatusBar } from 'react-native';
-import styles from '../profileStyles';
+import styles from './profileStyles';
 
 
 // Define types for user profile
