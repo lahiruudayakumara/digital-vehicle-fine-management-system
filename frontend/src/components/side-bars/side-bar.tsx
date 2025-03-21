@@ -22,9 +22,6 @@ const SideBar = () => {
             <li className="p-3 bg-gradient-to-r from-blue-500 to-green-400 text-white rounded-lg hover:opacity-80 transition duration-300">
                 <Link to="add-new-officer">Add New Officer</Link>
             </li>
-            <li className="p-3 bg-gradient-to-r from-blue-500 to-green-400 text-white rounded-lg hover:opacity-80 transition duration-300">
-                <Link to="update-officer">Update Officer</Link>
-            </li>
           </ul>
         </nav>
       </aside>
