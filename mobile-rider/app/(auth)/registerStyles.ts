@@ -13,7 +13,7 @@ export const COLORS = {
   textLight: '#F9FAFB', // Light text for dark mode
 };
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -71,3 +71,5 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   }
 });
+
+export default styles;
