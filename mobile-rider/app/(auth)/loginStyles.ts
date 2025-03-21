@@ -20,6 +20,29 @@ const loginStyles = StyleSheet.create({
     padding: 24,
     justifyContent: 'center',
   },
+  // Add these to your existing styles
+inputError: {
+  borderColor: 'red',
+},
+
+buttonDisabled: {
+  backgroundColor: '#cccccc',
+},
+helpContainer: {
+  marginTop: 15,
+  alignItems: 'center',
+  gap: 10,
+},
+demoInfoContainer: {
+  marginTop: 30,
+  padding: 15,
+  backgroundColor: '#f0f0f0',
+  borderRadius: 5,
+},
+demoInfoText: {
+  fontSize: 12,
+  color: '#666',
+},
   title: {
     fontSize: 28,
     fontWeight: 'bold',

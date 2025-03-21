@@ -1,22 +1,10 @@
-// E:\digital-vehicle-fine-management-system\mobile-rider\app\(other)\_layout.tsx
+import { Stack, useRouter } from "expo-router";
+import { Text, TouchableOpacity, View } from "react-native";
 
-import React from "react";
-import { Stack } from "expo-router";
-import { useRouter } from "expo-router";
-import { View, TouchableOpacity, Text } from "react-native";
+import { COLORS } from "@/styles/color";
 import FeatherIcons from "react-native-vector-icons/Feather";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-
-// Color palette - same as in (tabs)/_layout.tsx
-const COLORS = {
-  primary: "#1E3A8A", // Deep Blue
-  secondary: "#FACC15", // Bright Yellow
-  accent: "#DC2626", // Traffic Red
-  background: "#F3F4F6", // Light Gray
-  white: "#FFFFFF",
-  success: "#16A34A", // Green
-  text: "#1F2937", // Dark text for light mode
-};
+import React from "react";
 
 export default function OtherLayout() {
   const router = useRouter();
@@ -37,19 +25,19 @@ export default function OtherLayout() {
           headerShown: true,
         }}
       >
-        <Stack.Screen 
-          name="index" 
-          options={{ 
-            headerShown: false 
-          }} 
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+          }}
         />
-        <Stack.Screen 
-          name="settings" 
-          options={{ 
+        <Stack.Screen
+          name="settings"
+          options={{
             title: "Settings",
             // Make sure this is true to show the Settings header
-            headerShown: true 
-          }} 
+            headerShown: true,
+          }}
         />
       </Stack>
 
@@ -74,35 +62,47 @@ export default function OtherLayout() {
           onPress={() => router.push("/")}
         >
           <FeatherIcons name="home" color="gray" size={24} />
-          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>Home</Text>
+          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
+            Home
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/fines")}
         >
           <FeatherIcons name="file-text" color="gray" size={24} />
-          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>Fines</Text>
+          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
+            Fines
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/qrcode")}
         >
           <MaterialCommunityIcons name="qrcode" color="gray" size={24} />
-          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>QR Code</Text>
+          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
+            QR Code
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
-          onPress={() => router.push("/payment")}
+          onPress={() => router.push("/(tabs)/transactions")}
         >
           <FeatherIcons name="credit-card" color="gray" size={24} />
-          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>Payments</Text>
+          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
+          Transactions
+          </Text>
         </TouchableOpacity>
+
+
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/profile")}
         >
           <FeatherIcons name="user" color="gray" size={24} />
-          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>Profile</Text>
+          <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
+            Profile
+          </Text>
         </TouchableOpacity>
       </View>
     </>

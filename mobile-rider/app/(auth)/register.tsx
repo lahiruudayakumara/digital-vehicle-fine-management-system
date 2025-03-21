@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { styles } from '../registerStyles';
+import { styles } from './registerStyles';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
