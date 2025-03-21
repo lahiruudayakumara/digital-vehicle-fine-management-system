@@ -38,6 +38,8 @@ const FineHistoryScreen: React.FC = () => {
   });
   
 
+  
+
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -84,6 +86,8 @@ const FineHistoryScreen: React.FC = () => {
     );
   };
 
+  
+
   const handleUpdate = (item: any) => {
     setSelectedFine(item);
     setUpdatedFine(item);
@@ -96,6 +100,8 @@ const FineHistoryScreen: React.FC = () => {
       fine.licenseNumber === selectedFine.licenseNumber ? updatedFine : fine
     );
     console.log('Updated Fine Record:', updatedData);
+
+    Alert.alert('Success', 'Fine record updated successfully!', [{ text: 'OK' }]);
     setShowUpdateModal(false);
   };
 
@@ -214,6 +220,7 @@ const FineHistoryScreen: React.FC = () => {
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
 
+            
             <TouchableOpacity style={styles.closeButton} onPress={() => setShowUpdateModal(false)}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
