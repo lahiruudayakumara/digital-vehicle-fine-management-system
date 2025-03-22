@@ -2,9 +2,11 @@ package com.example.digital_fine_management_system.util;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.Value;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
+import java.util.function.Function;
 
 import static io.jsonwebtoken.Jwts.*;
 
@@ -12,7 +14,8 @@ import static io.jsonwebtoken.Jwts.*;
 public class JwtTokenProvider {
 
     private final Key jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    private final long JWT_EXPIRATION = 604800000L; // 7 days
+    private final long JWT_EXPIRATION = 3600000;
+    private final long refreshTokenExpirationInMs = 86400000;
 
     public String generateToken(String username) {
         Date now = new Date();
@@ -35,6 +38,15 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpirationInMs))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
+
     public boolean validateToken(String authToken) {
         try {
             Jwts.parser()
@@ -45,5 +57,9 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public long getExpirationTime() {
+        return JWT_EXPIRATION;
     }
 }

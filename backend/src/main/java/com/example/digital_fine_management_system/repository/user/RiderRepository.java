@@ -9,4 +9,12 @@ import java.util.Optional;
 @Repository
 public interface RiderRepository extends JpaRepository<Rider, Long> {
     Optional<Rider> findByLicenseId(String licenseId);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByLicenseId(String licenseId);
+
+    Optional<Rider> findByUsername(String username);
 }

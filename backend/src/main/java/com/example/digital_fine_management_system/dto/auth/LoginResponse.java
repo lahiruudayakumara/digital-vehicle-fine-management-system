@@ -14,8 +14,8 @@ import java.time.Instant;
 @AllArgsConstructor
 public class LoginResponse {
 
-    @JsonProperty("email")
-    private String email;
+    @JsonProperty("username")
+    private String username;
 
     @JsonProperty("token")
     private String token;

@@ -8,6 +8,7 @@ import com.example.digital_fine_management_system.dto.policeOfficer.PoliceOffice
 import com.example.digital_fine_management_system.dto.policeOfficer.PoliceOfficerResponseDTO;
 import com.example.digital_fine_management_system.service.auth.AuthService;
 import com.example.digital_fine_management_system.util.JwtTokenProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +17,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("api/auth")
@@ -52,20 +54,35 @@ public class AuthController {
     }
 
 //     Endpoint for User Login
-    @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody LoginRequest request) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()
-                    )
-            );
+@PostMapping("/login")
+public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+    try {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
 
-            String token = jwtTokenProvider.generateToken(authentication.getName());
-            return ResponseEntity.ok(token);
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Invalid username or password");
-        }
+        String username = authentication.getName();
+        String token = jwtTokenProvider.generateToken(username);
+        long expiresIn = jwtTokenProvider.getExpirationTime();
+        String refreshToken = jwtTokenProvider.generateRefreshToken(username);
+
+        LoginResponse response = LoginResponse.builder()
+                .username(username)
+                .token(token)
+                .refreshToken(refreshToken)
+                .role(authentication.getAuthorities().iterator().next().getAuthority())
+                .expiresIn(expiresIn)
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    } catch (AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Collections.singletonMap("error", "Invalid username or password"));
     }
+}
+
 }
