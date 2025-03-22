@@ -107,7 +107,7 @@ const UpdateOfficer = () => {
 
     const handleModalClose = () => {
         setIsModalOpen(false);
-        navigate("/officermanage");
+        navigate("/dashboard/officer-manage");
     };
 
     const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {

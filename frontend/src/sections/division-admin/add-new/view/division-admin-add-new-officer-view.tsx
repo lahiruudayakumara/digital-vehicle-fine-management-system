@@ -135,7 +135,7 @@ const AddNewOfficerView = () => {
 
     const closeModal = () => {
         setIsModalOpen(false); // Close the modal
-        navigate('/officermanage'); // Redirect to the dashboard using the new `navigate` function
+        navigate('/dashboard/officer-manage'); // Redirect to the dashboard using the new `navigate` function
     };
     
 
