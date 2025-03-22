@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';  // Import FontAwesome icons
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
 
 const FineHistoryScreen: React.FC = () => {
   const fineData = [
@@ -36,9 +37,6 @@ const FineHistoryScreen: React.FC = () => {
     fine: '',
     status: '',
   });
-  
-
-  
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -86,8 +84,6 @@ const FineHistoryScreen: React.FC = () => {
     );
   };
 
-  
-
   const handleUpdate = (item: any) => {
     setSelectedFine(item);
     setUpdatedFine(item);
@@ -103,6 +99,58 @@ const FineHistoryScreen: React.FC = () => {
 
     Alert.alert('Success', 'Fine record updated successfully!', [{ text: 'OK' }]);
     setShowUpdateModal(false);
+  };
+
+  const generateReport = async () => {
+    const htmlContent = `
+      <h2>Fine History Report</h2>
+      <table border="1" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>Driver Name</th>
+            <th>License Number</th>
+            <th>Vehicle Number</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Category</th>
+            <th>Fine</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredData
+            .map(
+              (item) => `
+            <tr>
+              <td>${item.driverName}</td>
+              <td>${item.licenseNumber}</td>
+              <td>${item.vehicleNumber}</td>
+              <td>${item.date}</td>
+              <td>${item.Location}</td>
+              <td>${item.category}</td>
+              <td>${item.fine}</td>
+              <td>${item.status}</td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+
+    try {
+      const options = {
+        html: htmlContent,
+        fileName: 'fine_report',
+        directory: 'Documents',
+      };
+
+      const file = await RNHTMLtoPDF.convert(options);
+      Alert.alert('Success', `Report generated at: ${file.filePath}`);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      Alert.alert('Error', 'Failed to generate the report.');
+    }
   };
 
   const renderCard = ({ item }: { item: { driverName: string; licenseNumber: string; vehicleNumber: string; date: string; Location: string; category: string; fine: string; status: string } }) => (
@@ -160,7 +208,7 @@ const FineHistoryScreen: React.FC = () => {
         />
       )}
 
-      <TouchableOpacity style={styles.generateButton}>
+      <TouchableOpacity style={styles.generateButton} onPress={generateReport}>
         <Text style={styles.generateButtonText}>Generate a Report</Text>
       </TouchableOpacity>
 
@@ -211,18 +259,17 @@ const FineHistoryScreen: React.FC = () => {
             />
             <TextInput
               style={styles.inputField}
-              placeholder="Fine Amount"
+              placeholder="Fine"
               value={updatedFine.fine}
               onChangeText={(text) => setUpdatedFine({ ...updatedFine, fine: text })}
             />
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSaveUpdate}>
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={styles.buttonText}>Save</Text>
             </TouchableOpacity>
 
-            
-            <TouchableOpacity style={styles.closeButton} onPress={() => setShowUpdateModal(false)}>
-              <Text style={styles.closeButtonText}>Close</Text>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowUpdateModal(false)}>
+              <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -234,111 +281,136 @@ const FineHistoryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
-
-  },
-  dropdown: {
-    borderColor: '#ccc',
-    borderWidth: 2,
-    borderRadius: 5,
-    paddingHorizontal: 0,
-    height: 40
-  },
-  dropdownContainer: {
-    borderColor: '#ccc',
-    borderWidth: 5,
-    borderRadius: 5,
-    marginBottom: 5
+    padding: 20,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold'
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  dropdown: {
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
   },
   searchInput: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 4,
     paddingHorizontal: 10,
-    marginBottom: 10
+    marginBottom: 20,
   },
   cardsContainer: {
     flex: 1,
-    padding: 10
+    marginBottom: 20,
   },
   card: {
-    backgroundColor: 'white',
+    marginBottom: 20,
     padding: 15,
-    marginVertical: 10,
+    backgroundColor: '#fff',
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowColor: '#ccc',
+    shadowOpacity: 0.1,
     shadowRadius: 5,
-    elevation: 3
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8
+    marginBottom: 10,
   },
   cardActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: 15
+    justifyContent: 'space-between',
+    marginTop: 10,
   },
   updateButton: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#007AFF',
-    borderWidth: 2,
-    padding: 10,
-    borderRadius: 5,
-    marginRight: 10,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
   },
   updateButtonText: {
-    color: '#007AFF',
-    fontSize: 16, fontWeight: 'bold',
-    marginLeft: 5
+    color: '#fff',
+    marginLeft: 5,
   },
   deleteButton: {
-    backgroundColor: '#FF3B30',
-    padding: 10,
-    borderRadius: 5,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#e63946',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
   },
   buttonText: {
     color: '#fff',
-    fontWeight: 'bold',
-    marginLeft: 5
   },
-  completed: { color: 'green' },
-  pending: { color: 'orange' },
+  completed: {
+    color: 'green',
+  },
+  pending: {
+    color: 'orange',
+  },
   generateButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 7,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 20,
     alignItems: 'center',
-    marginVertical: 10,
-    width: 150,
-    alignSelf: 'flex-end'
   },
   generateButtonText: {
     color: '#fff',
-    fontWeight: 'bold'
+    fontSize: 18,
   },
-
-  // Modal styles
-  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContainer: { width: 300, backgroundColor: '#fff', padding: 20, borderRadius: 10 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  inputField: { height: 40, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10, marginBottom: 10 },
-  saveButton: { backgroundColor: '#007AFF', padding: 11, borderRadius: 10, alignItems: 'center' },
-  saveButtonText: { color: '#fff', fontWeight: 'bold' },
-  closeButton: { backgroundColor: 'red',padding: 10, borderRadius: 10, alignItems: 'center', marginTop: 10 },
-  closeButtonText: { color: 'white', fontWeight: 'bold' },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 30,
+    borderRadius: 10,
+    width: 300,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputField: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  saveButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#e63946',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
 });
 
 export default FineHistoryScreen;
