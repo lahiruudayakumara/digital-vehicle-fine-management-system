@@ -148,11 +148,9 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        
-        
         {/* App Version */}
         <View style={styles.versionContainer}>
-        <Text style={styles.historyButtonText}>Log Out</Text>
+        <Text style={styles.historyButtonText}>Download Summery</Text>
         <Text style={styles.historyButtonText}></Text>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
