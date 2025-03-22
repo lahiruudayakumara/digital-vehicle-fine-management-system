@@ -64,11 +64,28 @@ const HomeScreen: React.FC = () => {
 
   const [openDropdown, setOpenDropdown] = useState(false);
 
-  // Handle input changes
   const handleInputChange = useCallback((field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: '' }));
+    if (field === "licenseNumber") {
+      // Remove non-numeric characters and limit to 10 digits
+      const formattedValue = value.replace(/\D/g, "").slice(0, 10);
+
+      setFormData((prev) => ({ ...prev, licenseNumber: formattedValue }));
+
+      // Validate License Number (Only 10 Digits Allowed)
+      if (formattedValue.length !== 10 && formattedValue.length > 0) {
+        setErrors((prev) => ({ ...prev, licenseNumber: "License Number must be exactly 10 digits" }));
+      } else {
+        setErrors((prev) => ({ ...prev, licenseNumber: "" }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   }, []);
+
+
+  // Handle input changes
+
 
   // Handle Reason Dropdown change
   const handleReasonChange = (value: string | null) => {
@@ -209,15 +226,25 @@ const HomeScreen: React.FC = () => {
 
                   <TextInput
                     placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}`}
-
-                    
-
                     style={[styles.inputField, errors[field as keyof typeof errors] && { borderColor: 'red' }]}
                     value={formData[field as keyof typeof formData]}
-                    onChangeText={(text) => handleInputChange(field as keyof typeof formData, text)}
+                    onChangeText={(text) => {
+                      let formattedText = text;
+
+                      if (field === "licenseNumber") {
+                        formattedText = text.replace(/\D/g, "").slice(0, 10); // Allow only numbers, limit to 10 digits
+                      }
+
+                      handleInputChange(field as keyof typeof formData, formattedText);
+                    }}
+                    keyboardType={field === "licenseNumber" ? "numeric" : "default"} // Ensure numeric keyboard for license number
+                    maxLength={field === "licenseNumber" ? 10 : undefined} // Restrict max length for license number
                   />
+
                   {errors[field as keyof typeof errors] && <Text style={styles.errorText}>{errors[field as keyof typeof errors]}</Text>}
                 </View>
+
+                
               )
             ))}
 
