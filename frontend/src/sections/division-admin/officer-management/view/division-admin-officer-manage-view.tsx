@@ -2,6 +2,7 @@ import { FaPen, FaTrash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useState } from "react";
+import UpdateOfficer from "../../update/view/division-admin-update-officer";
 
 // Define Officer type
 interface Officer {
@@ -15,17 +16,18 @@ interface Officer {
 
 // Dummy officer data (10 records)
 const officersData: Officer[] = [
-    { id: "ABX-2938-PLQ", name: "Abram Vaccaro", phone: "0771234567", email: "abram@example.com", address: "No. 10, Colombo", patrolLocation: "Colombo" },
-    { id: "ZKY-7451-WNM", name: "Skylar Bator", phone: "0789876543", email: "skylar@example.com", address: "No. 20, Kandy", patrolLocation: "Kandy" },
-    { id: "LMN-3456-QWE", name: "Olivia Carter", phone: "0764567890", email: "olivia@example.com", address: "No. 5, Galle", patrolLocation: "Galle" },
-    { id: "PKL-7894-RTY", name: "Mason Lee", phone: "0745678901", email: "mason@example.com", address: "No. 15, Jaffna", patrolLocation: "Jaffna" },
-    { id: "QWE-5678-XYZ", name: "Sophia Martinez", phone: "0756789012", email: "sophia@example.com", address: "No. 8, Negombo", patrolLocation: "Negombo" },
-    { id: "XYZ-1234-ABC", name: "Ethan Thompson", phone: "0712345678", email: "ethan@example.com", address: "No. 22, Kurunegala", patrolLocation: "Kurunegala" },
-    { id: "JKL-9876-MNO", name: "Ava Johnson", phone: "0782345678", email: "ava@example.com", address: "No. 30, Matara", patrolLocation: "Matara" },
-    { id: "DEF-6543-GHI", name: "James Wilson", phone: "0773456789", email: "james@example.com", address: "No. 12, Anuradhapura", patrolLocation: "Anuradhapura" },
-    { id: "VBN-4321-POI", name: "Isabella Harris", phone: "0798765432", email: "isabella@example.com", address: "No. 18, Badulla", patrolLocation: "Badulla" },
-    { id: "MNB-8765-QAZ", name: "Alexander White", phone: "0765432109", email: "alexander@example.com", address: "No. 25, Ratnapura", patrolLocation: "Ratnapura" },
+    { id: "ABX-2938-PLQ", name: "Abram Vaccaro", phone: "0771234567", email: "abram@example.com", address: "No. 10, Malabe", patrolLocation: "Suwapubuduwewa" },
+    { id: "ZKY-7451-WNM", name: "Skylar Bator", phone: "0789876543", email: "skylar@example.com", address: "No. 20, Malabe", patrolLocation: "Arangala" },
+    { id: "LMN-3456-QWE", name: "Olivia Carter", phone: "0764567890", email: "olivia@example.com", address: "No. 5, Malabe", patrolLocation: "Arangala" },
+    { id: "PKL-7894-RTY", name: "Mason Lee", phone: "0745678901", email: "mason@example.com", address: "No. 15, Malabe", patrolLocation: "Kahanthota" },
+    { id: "QWE-5678-XYZ", name: "Sophia Martinez", phone: "0756789012", email: "sophia@example.com", address: "No. 8, Malabe", patrolLocation: "Kahanthota" },
+    { id: "XYZ-1234-ABC", name: "Ethan Thompson", phone: "0712345678", email: "ethan@example.com", address: "No. 22, Malabe", patrolLocation: "Thalahena" },
+    { id: "JKL-9876-MNO", name: "Ava Johnson", phone: "0782345678", email: "ava@example.com", address: "No. 30, Malabe", patrolLocation: "Thalahena" },
+    { id: "DEF-6543-GHI", name: "James Wilson", phone: "0773456789", email: "james@example.com", address: "No. 12, Malabe", patrolLocation: "Tech City" },
+    { id: "VBN-4321-POI", name: "Isabella Harris", phone: "0798765432", email: "isabella@example.com", address: "No. 18, Malabe", patrolLocation: "SLIIT Campus Area" },
+    { id: "MNB-8765-QAZ", name: "Alexander White", phone: "0765432109", email: "alexander@example.com", address: "No. 25, Malabe", patrolLocation: "SLIIT Campus Area" },
 ];
+
 
 const OfficerManageView = () => {
     const [officers, setOfficers] = useState<Officer[]>(officersData);
@@ -33,8 +35,12 @@ const OfficerManageView = () => {
     const [deleteOfficerId, setDeleteOfficerId] = useState<string | null>(null);
     const navigate = useNavigate();
 
+    const [ismodalopen, setIsmodalopen ] = useState<boolean>(false)
+
+
     const handleEdit = (officer: Officer): void => {
-        navigate("/dashboard/update-officer", { state: { officer } });
+        // navigate("/dashboard/update-officer", { state: { officer } });
+        setIsmodalopen(true);
     };
 
     const handleDelete = (id: string) => {
@@ -108,7 +114,7 @@ const OfficerManageView = () => {
                         <tbody>
                             {filteredOfficers.length > 0 ? (
                                 filteredOfficers.map((officer) => (
-                                    <tr key={officer.id} className="border-t hover:bg-gray-100">
+                                    <tr key={officer.id} className="border-t border-gray-200 hover:bg-gray-100">
                                         <td className="p-3">{officer.id}</td>
                                         <td className="p-3">{officer.name}</td>
                                         <td className="p-3">{officer.phone}</td>
@@ -167,6 +173,9 @@ const OfficerManageView = () => {
 
 
             </div>
+            <UpdateOfficer isOpen={ismodalopen} onClose={
+                () => {setIsmodalopen(false)}
+            }onSubmit={() => {}} />
         </div>
     );
 };
