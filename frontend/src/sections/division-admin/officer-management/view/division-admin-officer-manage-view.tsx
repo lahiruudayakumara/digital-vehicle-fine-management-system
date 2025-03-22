@@ -110,7 +110,7 @@ const OfficerManageView = () => {
 
     // Get background color based on officer status
     const getRowBackgroundColor = (status?: string) => {
-        if (status === "active") return "bg-green-50";
+        if (status === "active") return "bg-blue-50";
         if (status === "onLeave") return "bg-gray-50";
         return "";
     };
@@ -122,7 +122,7 @@ const OfficerManageView = () => {
                     <h1 className="text-2xl font-semibold text-gray-900">Motor Traffic Officer Management</h1>
                     <div className="flex space-x-4">
                         <button
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
                             onClick={handleReportGeneration}
                         >
                             Generate Report
@@ -169,7 +169,7 @@ const OfficerManageView = () => {
                 <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
                     <div className="mb-2 p-3 flex items-center space-x-4">
                         <div className="flex items-center">
-                            <span className="inline-block w-4 h-4 bg-green-50 border border-green-200 rounded-sm mr-2"></span>
+                            <span className="inline-block w-4 h-4 bg-blue-50 border border-green-200 rounded-sm mr-2"></span>
                             <span className="text-sm text-gray-600">Active</span>
                         </div>
                         <div className="flex items-center">
