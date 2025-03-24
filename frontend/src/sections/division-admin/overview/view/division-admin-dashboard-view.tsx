@@ -1,7 +1,9 @@
 import { FaChevronDown, FaClipboardList, FaFileAlt, FaFileDownload, FaSignOutAlt, FaUsers } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom'; // Import Link
 
-import { Link } from 'react-router-dom'; // Import Link
+import { logout } from '@/stores/slices/auth/auth-slice';
 import { saveAs } from 'file-saver';
+import { useDispatch } from 'react-redux';
 import { useState } from 'react';
 
 const finesData = [
@@ -18,6 +20,13 @@ function AdminDashboardView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchAttribute, setSearchAttribute] = useState('officerId');
   const [filterDate, setFilterDate] = useState('');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
 
   const filteredFines = finesData.filter(fine =>
     (activeTab === 'All' || fine.status === activeTab) &&
@@ -47,7 +56,7 @@ function AdminDashboardView() {
               <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-lg py-2 w-40">
                 <p className="px-4 py-2 text-gray-700">Admin Division</p>
                 <Link to="/">
-                  <button className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 flex items-center">
+                  <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 flex items-center">
                     <FaSignOutAlt className="mr-2" /> Logout
                   </button>
                 </Link>
