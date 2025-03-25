@@ -18,10 +18,20 @@ const authSlice = createSlice({
       localStorage.removeItem("refreshToken");
       state.user = null;
       state.token = null;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(login.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(register.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(refreshUserToken.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.token = action.payload.token;
         state.user = action.payload.user;
@@ -29,8 +39,22 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state) => {
         state.loading = false;
       })
+      .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
       .addCase(refreshUserToken.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.token = action.payload.token;
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(refreshUserToken.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

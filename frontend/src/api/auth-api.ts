@@ -14,8 +14,8 @@ export const registerUser = async (userData: RegisterRequest): Promise<AuthRespo
 
 export const refreshToken = async (): Promise<AuthResponse> => {
   const refreshToken = localStorage.getItem("refreshToken");
-  const response = await API.post<AuthResponse>("/auth/refresh-token", {}, {
-    headers: { Authorization: `Bearer ${refreshToken}` }
+  const response = await API.post<AuthResponse>("/auth/refresh-token", {
+    refreshToken: `${refreshToken}`,
   });
   return response.data;
 };
