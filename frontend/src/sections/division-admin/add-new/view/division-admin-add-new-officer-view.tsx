@@ -135,7 +135,7 @@ const AddNewOfficerView = () => {
 
     const closeModal = () => {
         setIsModalOpen(false); // Close the modal
-        navigate('/officermanage'); // Redirect to the dashboard using the new `navigate` function
+        navigate('/dashboard/officer-manage'); // Redirect to the dashboard using the new `navigate` function
     };
     
 
@@ -143,7 +143,11 @@ const AddNewOfficerView = () => {
         <div className="flex min-h-screen">
             <div className="flex-1 p-6">
                 <h1 className="text-xl font-bold">Add New Motor Traffic Officer</h1>
-                <div className="bg-white p-6 rounded shadow-md mt-4">
+                <div
+      className="fixed inset-0 bg-black  flex justify-center items-center"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+    >
+      <div className="bg-white p-6 rounded shadow-md mt-4">
                     <div className="border-b pb-2 flex justify-between items-center">
                         <div className="flex space-x-6">
                             <button
@@ -380,6 +384,7 @@ const AddNewOfficerView = () => {
     </div>
 )}
 
+        </div>
         </div>
     );
 };

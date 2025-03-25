@@ -8,40 +8,39 @@ import com.example.digital_fine_management_system.model.user.PoliceOfficer;
 import com.example.digital_fine_management_system.model.user.Role;
 import com.example.digital_fine_management_system.model.user.User;
 import com.example.digital_fine_management_system.repository.user.UserRepository;
-import com.example.digital_fine_management_system.util.JwtTokenUtil;
+import com.example.digital_fine_management_system.util.JwtTokenProvider;
 import com.example.digital_fine_management_system.util.PasswordUtil;
+import com.example.digital_fine_management_system.util.ResponseUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
     private final UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private final JwtTokenUtil jwtTokenUtil;
-
-    private final UserDetailsService userDetailsService;
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
-    public AuthServiceImpl(
-            UserRepository userRepository,
-            JwtTokenUtil jwtTokenUtil,
-            AuthenticationManager authenticationManager,
-            UserDetailsService userDetailsService) {
+    public AuthServiceImpl(UserRepository userRepository, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
         this.userRepository = userRepository;
-        this.jwtTokenUtil = jwtTokenUtil;
         this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
@@ -78,10 +77,10 @@ public class AuthServiceImpl implements AuthService {
             policeOfficer.setEmail(request.getEmail());
             policeOfficer.setPassword(PasswordUtil.encodePassword(request.getPassword()));
             policeOfficer.setRole(Role.POLICE_OFFICER);
-            policeOfficer.setBadgeID(request.getBadgeID()); // Setting correct police officer ID
+            policeOfficer.setBadgeID(request.getBadgeID());
             policeOfficer.setAddress(request.getAddress());
             policeOfficer.setTelephone(request.getTelephone());
-            policeOfficer.setPatrolLocations(request.getPatrolLocations()); // Already a string
+            policeOfficer.setPatrolLocations(request.getPatrolLocations());
 
             userRepository.save(policeOfficer);
             return "Police officer registered successfully";
@@ -90,29 +89,94 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    public ResponseEntity<?> authenticateUser(LoginRequest request) {
+        if (isInvalidRequest(request)) {
+            return ResponseUtil.badRequestResponse("Username and password are required");
+        }
 
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
 
-    @Override
-    public LoginResponse loginUser(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+            return generateLoginResponse(authentication);
+        } catch (BadCredentialsException e) {
+            return ResponseUtil.unauthorizedResponse("Invalid username or password");
+        } catch (DisabledException e) {
+            return ResponseUtil.forbiddenResponse("User account is disabled");
+        } catch (LockedException e) {
+            return ResponseUtil.forbiddenResponse("User account is locked");
+        } catch (AuthenticationException e) {
+            return ResponseUtil.unauthorizedResponse("Authentication failed");
+        }
+    }
 
-        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found")));
+    public ResponseEntity<?> refreshAccessToken(Map<String, String> requestBody) {
+        try {
+            String refreshToken = requestBody.get("refreshToken");
 
-        String token = jwtTokenUtil.generateToken(user.get().getEmail());
-        String refreshToken = jwtTokenUtil.generateToken(user.get().getEmail());
+            if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
+                logger.debug("Refresh token validation failed: '{}'", refreshToken);
+                return ResponseUtil.unauthorizedResponse("Invalid or expired refresh token");
+            }
 
-        return LoginResponse.builder()
-                .email(user.get().getEmail())
+            String username = jwtTokenProvider.extractUsername(refreshToken, true);
+            if (username == null || username.isEmpty()) {
+                logger.warn("No username found in refresh token: '{}'", refreshToken);
+                return ResponseUtil.unauthorizedResponse("No username found in refresh token");
+            }
+
+            String role = userRepository.getRoleByUsername(username);
+            String newAccessToken = jwtTokenProvider.generateAccessToken(username, role);
+            Date expiryDate = jwtTokenProvider.extractExpiration(newAccessToken, false);
+
+            LoginResponse response = LoginResponse.builder()
+                    .username(username)
+                    .token(newAccessToken)
+                    .refreshToken(refreshToken)
+                    .role(role)
+                    .expiresIn(expiryDate)
+                    .timestamp(Instant.now())
+                    .build();
+
+            logger.debug("Successfully refreshed token for user: {}", username);
+            return ResponseEntity.ok(response);
+
+        } catch (JwtTokenProvider.JwtAuthenticationException e) {
+            logger.debug("JWT parsing failed: {}", e.getMessage());
+            return ResponseUtil.unauthorizedResponse("Invalid or expired refresh token: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error during token refresh: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Failed to refresh token: " + e.getMessage()));
+        }
+    }
+
+    private boolean isInvalidRequest(LoginRequest request) {
+        return request.getUsername() == null || request.getUsername().isEmpty() ||
+                request.getPassword() == null || request.getPassword().isEmpty();
+    }
+
+    private ResponseEntity<?> generateLoginResponse(Authentication authentication) {
+        String username = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("USER");
+
+        String token = jwtTokenProvider.generateAccessToken(username, role);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(username, role);
+        Date expiryDate = jwtTokenProvider.extractExpiration(token, false);
+
+        LoginResponse response = LoginResponse.builder()
+                .username(username)
                 .token(token)
-                .role(user.get().getRole().name())
-                .expiresIn(jwtTokenUtil.getExpirationTime()) // Ensure JWT expiration is set
                 .refreshToken(refreshToken)
-                .expiresIn(Instant.now().getEpochSecond())
-                .refreshToken(token)
+                .role(role)
+                .expiresIn(expiryDate)
                 .timestamp(Instant.now())
                 .build();
+
+        return ResponseEntity.ok(response);
     }
 }
