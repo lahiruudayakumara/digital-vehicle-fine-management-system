@@ -21,4 +21,12 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 3600
+  refresh-secret: ${JWT_REFRESH_SECRET}
+  expiration: ${JWT_EXPIRATION}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION}
+
+allowed:
+  origins:
+    web: ${ALLOWED_ORIGINS_WEB}
+    expo-officer: ${ALLOWED_ORIGINS_EXPO_OFFICER}
+    expo-rider: ${ALLOWED_ORIGINS_EXPO_RIDER}
