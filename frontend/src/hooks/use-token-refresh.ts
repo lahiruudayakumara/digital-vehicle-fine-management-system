@@ -1,9 +1,8 @@
-import { AppDispatch, RootState } from "@stores/store";
-import { useDispatch, useSelector } from "react-redux";
+import { logout, refreshUserToken } from "@stores/slices/auth/auth-actions";
 
+import { AppDispatch } from "@stores/store";
 import Logger from "@/utils/logger";
-import { logout } from "@/stores/slices/auth/auth-slice";
-import { refreshUserToken } from "@stores/slices/auth/auth-actions";
+import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 
 const TokenRefreshChecker = () => {

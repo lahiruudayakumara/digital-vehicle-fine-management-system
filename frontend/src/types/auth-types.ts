@@ -12,15 +12,13 @@ export interface RegisterRequest {
 export interface AuthResponse {
     token: string;
     refresh_token: string;
-    user: {
-        id: string;
-        username: string;
-        email: string;
-    };
+    username: string;
+    role: string;
 }
 
 export interface AuthState {
-    user: AuthResponse["user"] | null;
+    username: string | null;
+    role: string | null;
     token: string | null;
     loading: boolean;
     error: string | null;

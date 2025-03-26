@@ -40,3 +40,17 @@ export const refreshUserToken = createAsyncThunk(
     }
   }
 );
+
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+    } catch (error: any) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      return rejectWithValue(error.response?.data || "Logout failed");
+    }
+  }
+);
