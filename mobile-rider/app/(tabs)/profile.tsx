@@ -4,7 +4,7 @@ import { Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, Touch
 
 import { AppDispatch } from '@/stores/store';
 import React from 'react';
-import { logout } from '@/stores/auth/auth-actions';
+import { logout } from '@/stores/slices/auth/auth-actions';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'expo-router';
 

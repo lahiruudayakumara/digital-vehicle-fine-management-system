@@ -30,7 +30,6 @@ export default function Login() {
       setLoading(true);
       await dispatch(login(credentials)).unwrap();
     } catch (err: any) {
-      console.log(err.message);
       Alert.alert("Login Failed", "Invalid credentials or something went wrong.");
     } finally {
       setLoading(false);
