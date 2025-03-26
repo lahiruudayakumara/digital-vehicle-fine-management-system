@@ -1,11 +1,34 @@
 import { FaPen, FaTrash, FaUserCheck, FaUserTimes } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import UpdateOfficer from "../../update/view/division-admin-update-officer";
-import API from "@/api/api-instance";
-import { Officer } from "@/types/officer-types";
+
+// Define Officer type
+interface Officer {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+    patrolLocation: string;
+    status?: "active" | "onLeave"; // Optional status field
+}
+
+// Dummy officer data (10 records)
+const officersData: Officer[] = [
+    { id: "ABX-2938-PLQ", name: "Abram Vaccaro", phone: "0771234567", email: "abram@example.com", address: "No. 10, Malabe", patrolLocation: "Suwapubuduwewa", status: "active" },
+    { id: "ZKY-7451-WNM", name: "Skylar Bator", phone: "0789876543", email: "skylar@example.com", address: "No. 20, Malabe", patrolLocation: "Arangala", status: "onLeave" },
+    { id: "LMN-3456-QWE", name: "Olivia Carter", phone: "0764567890", email: "olivia@example.com", address: "No. 5, Malabe", patrolLocation: "Arangala", status: "active" },
+    { id: "PKL-7894-RTY", name: "Mason Lee", phone: "0745678901", email: "mason@example.com", address: "No. 15, Malabe", patrolLocation: "Kahanthota", status: "active" },
+    { id: "QWE-5678-XYZ", name: "Sophia Martinez", phone: "0756789012", email: "sophia@example.com", address: "No. 8, Malabe", patrolLocation: "Kahanthota", status: "onLeave" },
+    { id: "XYZ-1234-ABC", name: "Ethan Thompson", phone: "0712345678", email: "ethan@example.com", address: "No. 22, Malabe", patrolLocation: "Thalahena", status: "active" },
+    { id: "JKL-9876-MNO", name: "Ava Johnson", phone: "0782345678", email: "ava@example.com", address: "No. 30, Malabe", patrolLocation: "Thalahena", status: "onLeave" },
+    { id: "DEF-6543-GHI", name: "James Wilson", phone: "0773456789", email: "james@example.com", address: "No. 12, Malabe", patrolLocation: "Tech City", status: "active" },
+    { id: "VBN-4321-POI", name: "Isabella Harris", phone: "0798765432", email: "isabella@example.com", address: "No. 18, Malabe", patrolLocation: "SLIIT Campus Area", status: "onLeave" },
+    { id: "MNB-8765-QAZ", name: "Alexander White", phone: "0765432109", email: "alexander@example.com", address: "No. 25, Malabe", patrolLocation: "SLIIT Campus Area", status: "active" },
+];
 
 const OfficerManageView = () => {
-    const [officers, setOfficers] = useState<Officer[]>([]);
+    const [officers, setOfficers] = useState<Officer[]>(officersData);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [deleteOfficerId, setDeleteOfficerId] = useState<string | null>(null);
     const [selectedOfficer, setSelectedOfficer] = useState<Officer | null>(null);
@@ -13,47 +36,6 @@ const OfficerManageView = () => {
     const [ismodalStatusOpen, setIsmodalStatusOpen] = useState<boolean>(false);
     const [status, setStatus] = useState<"active" | "onLeave">("active");
     const [locationFilter, setLocationFilter] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // Fetch officers from backend
-    useEffect(() => {
-        const fetchOfficers = async () => {
-            try {
-                setIsLoading(true);
-                const token = localStorage.getItem("token");
-    
-                if (!token) {
-                    console.error("No authentication token found. Redirecting to login...");
-                    setError("Authentication required. Please log in.");
-                    return; // Stop execution if token is missing
-                }
-    
-                const response = await API.get<Officer[]>('/police-officers', {
-                    headers: { 
-                        Authorization: `Bearer ${token.trim()}` // Ensure no extra spaces
-                    },
-                });
-    
-                setOfficers(response.data);
-            } catch (err: any) {
-                console.error('Error fetching officers:', err);
-    
-                if (err.response?.status === 401) {
-                    setError("Unauthorized. Please log in again.");
-                    // Optional: Redirect user to login page
-                    // window.location.href = "/login";
-                } else {
-                    setError("Failed to fetch officers. Please try again.");
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-    
-        fetchOfficers();
-    }, []);
-    
 
     // Extract unique patrol locations for the dropdown
     const patrolLocations = Array.from(new Set(officers.map(officer => officer.patrolLocation)));
@@ -69,15 +51,9 @@ const OfficerManageView = () => {
         setIsmodalStatusOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        try {
-            await API.delete(`/police-officers/${id}`);
-            setOfficers((prevOfficers) => prevOfficers.filter(officer => officer.id !== id));
-            setDeleteOfficerId(null);
-        } catch (err) {
-            console.error('Error deleting officer:', err);
-            alert('Failed to delete officer');
-        }
+    const handleDelete = (id: string) => {
+        setOfficers((prevOfficers) => prevOfficers.filter(officer => officer.id !== id));
+        setDeleteOfficerId(null); // Close modal after deletion
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,20 +64,13 @@ const OfficerManageView = () => {
         setLocationFilter(e.target.value);
     };
 
-    const handleStatusUpdate = async (id: string, newStatus: "active" | "onLeave") => {
-        try {
-            await API.patch(`/police-officers/${id}`, { status: newStatus });
-            
-            setOfficers((prevOfficers) =>
-                prevOfficers.map((officer) =>
-                    officer.id === id ? { ...officer, status: newStatus } : officer
-                )
-            );
-            setIsmodalStatusOpen(false);
-        } catch (err) {
-            console.error('Error updating officer status:', err);
-            alert('Failed to update officer status');
-        }
+    const handleStatusUpdate = (id: string, status: "active" | "onLeave") => {
+        setOfficers((prevOfficers) =>
+            prevOfficers.map((officer) =>
+                officer.id === id ? { ...officer, status } : officer
+            )
+        );
+        setIsmodalStatusOpen(false); // Close the status modal after updating
     };
 
     // Reset both filters
@@ -141,30 +110,10 @@ const OfficerManageView = () => {
 
     // Get background color based on officer status
     const getRowBackgroundColor = (status?: string) => {
-        if (status === "active") return "bg-blue-50";
+        if (status === "active") return "bg-green-50";
         if (status === "onLeave") return "bg-gray-50";
         return "";
     };
-
-    // Render loading state
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <div className="spinner-border" role="status">
-                    <span className="sr-only">Loading...</span>
-                </div>
-            </div>
-        );
-    }
-
-    // Render error state
-    if (error) {
-        return (
-            <div className="flex justify-center items-center h-screen text-red-500">
-                {error}
-            </div>
-        );
-    }
 
     return (
         <div className="flex h-screen">
@@ -173,7 +122,7 @@ const OfficerManageView = () => {
                     <h1 className="text-2xl font-semibold text-gray-900">Motor Traffic Officer Management</h1>
                     <div className="flex space-x-4">
                         <button
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
                             onClick={handleReportGeneration}
                         >
                             Generate Report
@@ -220,7 +169,7 @@ const OfficerManageView = () => {
                 <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
                     <div className="mb-2 p-3 flex items-center space-x-4">
                         <div className="flex items-center">
-                            <span className="inline-block w-4 h-4 bg-blue-50 border border-green-200 rounded-sm mr-2"></span>
+                            <span className="inline-block w-4 h-4 bg-green-50 border border-green-200 rounded-sm mr-2"></span>
                             <span className="text-sm text-gray-600">Active</span>
                         </div>
                         <div className="flex items-center">
@@ -243,9 +192,9 @@ const OfficerManageView = () => {
                         <tbody>
                             {filteredOfficers.length > 0 ? (
                                 filteredOfficers.map((officer) => (
-                                    <tr
-                                        key={officer.id}
-                                        className={`hover:bg-gray-100 ${getRowBackgroundColor(officer.status)}`}
+                                    <tr 
+                                        key={officer.id} 
+                                        className={`border-t border-gray-200 hover:bg-gray-100 ${getRowBackgroundColor(officer.status)}`}
                                     >
                                         <td className="p-3">{officer.id}</td>
                                         <td className="p-3">{officer.name}</td>
@@ -253,90 +202,105 @@ const OfficerManageView = () => {
                                         <td className="p-3">{officer.email}</td>
                                         <td className="p-3">{officer.address}</td>
                                         <td className="p-3">{officer.patrolLocation}</td>
-                                        <td className="p-3 flex space-x-4">
+                                        <td className="p-3 flex space-x-4 justify-center">
                                             <button
-                                                className="text-blue-500 hover:text-blue-600"
+                                                className="text-blue-500 hover:text-blue-700"
                                                 onClick={() => handleEdit(officer)}
                                             >
                                                 <FaPen />
                                             </button>
                                             <button
-                                                className="text-red-500 hover:text-red-600"
+                                                className="text-blue-500 hover:text-blue-700"
+                                                onClick={() => handleStatusChange(officer)}
+                                            >
+                                                {officer.status === "active" ? <FaUserCheck /> : <FaUserTimes />}
+                                            </button>
+                                            <button
+                                                className="text-red-500 hover:text-red-700"
                                                 onClick={() => setDeleteOfficerId(officer.id)}
                                             >
                                                 <FaTrash />
-                                            </button>
-                                            <button
-                                                className="text-yellow-500 hover:text-yellow-600"
-                                                onClick={() => handleStatusChange(officer)}
-                                            >
-                                                {officer.status === "active" ? (
-                                                    <FaUserTimes />
-                                                ) : (
-                                                    <FaUserCheck />
-                                                )}
                                             </button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="p-3 text-center text-gray-500">
-                                        No officers found
-                                    </td>
+                                    <td colSpan={7} className="p-3 text-center text-gray-500">No officers found</td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Delete Confirmation Modal */}
+                {deleteOfficerId && (
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-50 backdrop-blur-md bg-gray-200/30">
+                        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-300">
+                            <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+                            <p>Are you sure you want to delete this officer?</p>
+                            <div className="mt-4 flex justify-end space-x-4">
+                                <button
+                                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+                                    onClick={() => setDeleteOfficerId(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                    onClick={() => handleDelete(deleteOfficerId)}
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Officer Status Modal */}
+                {ismodalStatusOpen && selectedOfficer && (
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-50 backdrop-blur-md bg-gray-200/30">
+                        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-300 w-full max-w-sm">
+                            <h2 className="text-xl font-semibold mb-4">Update Officer Status</h2>
+                            <p className="mb-4">You are about to update the status of {selectedOfficer.name}.</p>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700">Current Status:</label>
+                                <div className="flex space-x-4 mt-2">
+                                    <button
+                                        className={`px-4 py-2 rounded-lg ${status === "active" ? "bg-green-600 text-white" : "bg-gray-200"}`}
+                                        onClick={() => setStatus("active")}
+                                    >
+                                        Active
+                                    </button>
+                                    <button
+                                        className={`px-4 py-2 rounded-lg ${status === "onLeave" ? "bg-yellow-600 text-white" : "bg-gray-200"}`}
+                                        onClick={() => setStatus("onLeave")}
+                                    >
+                                        On Leave
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+                                    onClick={() => setIsmodalStatusOpen(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    onClick={() => handleStatusUpdate(selectedOfficer.id, status)}
+                                >
+                                    Update Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
-
-            {/* {ismodalopen && selectedOfficer && (
-                <UpdateOfficer officer={selectedOfficer} isOpen={ismodalopen} setIsOpen={setIsmodalopen} />
-            )}
-            {ismodalStatusOpen && selectedOfficer && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h3>Update Officer Status</h3>
-                        <p>Change the status for officer {selectedOfficer.name}</p>
-                        <button
-                            onClick={() => handleStatusUpdate(selectedOfficer.id, "active")}
-                            className="bg-blue-500 text-white px-4 py-2"
-                        >
-                            Set Active
-                        </button>
-                        <button
-                            onClick={() => handleStatusUpdate(selectedOfficer.id, "onLeave")}
-                            className="bg-yellow-500 text-white px-4 py-2"
-                        >
-                            Set On Leave
-                        </button>
-                        <button onClick={() => setIsmodalStatusOpen(false)} className="bg-gray-500 text-white px-4 py-2">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )} */}
-
-            {deleteOfficerId && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h3>Are you sure you want to delete this officer?</h3>
-                        <button
-                            onClick={() => handleDelete(deleteOfficerId)}
-                            className="bg-red-500 text-white px-4 py-2"
-                        >
-                            Confirm Delete
-                        </button>
-                        <button
-                            onClick={() => setDeleteOfficerId(null)}
-                            className="bg-gray-500 text-white px-4 py-2"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
+            <UpdateOfficer isOpen={ismodalopen} onClose={() => setIsmodalopen(false)} onSubmit={() => {}} />
         </div>
     );
 };
