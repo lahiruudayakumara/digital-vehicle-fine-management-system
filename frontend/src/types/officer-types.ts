@@ -1,9 +1,28 @@
-export interface Officer {
-    id: string;
-    name: string;
-    phone: string;
-    email: string;
+// officer-types.ts
+
+export interface PoliceOfficer {
+    badgeID: string;
+    fullName: string;
     address: string;
-    patrolLocation: string;
-    status?: "active" | "onLeave"; // Optional status field
-}
+    telephone: string;
+    patrolLocations: string[];
+  }
+  
+  export interface PoliceOfficerUpdate {
+    fullName: string;
+    username: string;
+    email: string;
+    password: string;
+    address: string;
+    telephone: string;
+    patrolLocations: string[];
+  }
+  
+  export interface PoliceOfficerResponseDTO {
+    badgeID: string;
+    fullName: string;
+    address: string;
+    telephone: string;
+    patrolLocations: string[];
+  }
+  
