@@ -3,7 +3,8 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { loadTokenFromSecureStore, login, logout, refreshUserToken, register } from "@/stores/slices/auth/auth-actions";
 
 const initialState: AuthState = {
-  user: null,
+  username: null,
+  role: null,
   token: null,
   loading: false,
   error: null,
@@ -30,8 +31,10 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.username = action.payload.username;
+        state.role = action.payload.role;
         state.loading = false;
+        state.error = null;
       })
       .addCase(register.fulfilled, (state) => {
         state.loading = false;
@@ -46,7 +49,8 @@ const authSlice = createSlice({
       })
       .addCase(refreshUserToken.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.username = action.payload.username;
+        state.role = action.payload.role;
         state.loading = false;
         state.error = null;
       })
@@ -56,7 +60,9 @@ const authSlice = createSlice({
       })
       .addCase(logout.fulfilled, (state) => {
         state.token = null;
-        state.user = null;
+        state.username = null;
+        state.role = null;
+        state.error = null;
       });
   },
 });

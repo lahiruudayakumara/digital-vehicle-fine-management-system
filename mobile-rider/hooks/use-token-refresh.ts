@@ -1,6 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 
-import { logout, refreshUserToken } from "@/stores/auth/auth-actions";
+import { logout, refreshUserToken } from "@/stores/slices/auth/auth-actions";
 
 import { AppDispatch } from "@/stores/store";
 import Logger from "@/utils/logger";
