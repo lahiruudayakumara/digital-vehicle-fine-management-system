@@ -1,27 +1,47 @@
-import { Image, StyleSheet, Text, TextInput } from "react-native";
+import { Alert, Image, StyleSheet, Text, TextInput } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
 import { AppDispatch } from "@/stores/store";
 import Button from "@/components/common/Button";
+import { LoginRequest } from "@/types/auth-types";
+import { RootState } from "@/stores/reducers";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { login } from "@/stores/slices/authSlice";
-import { useDispatch } from "react-redux";
+import { login } from "@/stores/slices/auth/auth-actions";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState<LoginRequest>({
+    username: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const token = useSelector((state: RootState) => state.auth.token);
 
-  const handleLogin = () => {
-    if (username && password) {
-      dispatch(login({ token: username }));
-      router.replace("/(tabs)");
-    } else {
-      alert("Please enter username and password");
+  const handleLogin = async () => {
+    if (!credentials.username || !credentials.password) {
+      Alert.alert("Error", "Please enter both username and password.");
+      return;
+    }
+    try {
+      setLoading(true);
+      await dispatch(login(credentials)).unwrap();
+    } catch (err: any) {
+      console.log(err.message);
+      Alert.alert("Login Failed", "Invalid credentials or something went wrong.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      router.replace("/(tabs)");
+    }
+  }, [token, router]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -33,18 +53,22 @@ export default function Login() {
       <TextInput
         style={styles.input}
         placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
+        value={credentials.username}
+        onChangeText={(text) => setCredentials({ ...credentials, username: text })}
         autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
+        value={credentials.password}
+        onChangeText={(text) => setCredentials({ ...credentials, password: text })}
         secureTextEntry
       />
-      <Button title="Login" onPress={handleLogin} />
+      <Button
+        title={loading ? "Logging in..." : "Login"}
+        onPress={handleLogin}
+        disabled={loading}
+      />
     </SafeAreaView>
   );
 }
