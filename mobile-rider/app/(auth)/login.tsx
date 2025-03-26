@@ -1,7 +1,14 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+
+import { AppDispatch } from '@/stores/store';
+import { LoginRequest } from '@/types/auth-types';
+import { RootState } from '@/stores/reducers';
+import { login } from '@/stores/auth/auth-actions';
 import styles from './loginStyles';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 // Define the error state type
 interface FormErrors {
@@ -10,80 +17,66 @@ interface FormErrors {
 }
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('Password123!');
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isFormValid, setIsFormValid] = useState(false);
+  const [credentials, setCredentials] = useState<LoginRequest>({
+    username: "johnDoe",
+    password: "StrongPass123",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  
-  // Validate form inputs
-  useEffect(() => {
-    validateForm();
-  }, [email, password]);
-  
-  const validateForm = () => {
-    let newErrors: FormErrors = {};
-    
-    // Email validation
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    
-    // Password validation
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    
-    setErrors(newErrors);
-    setIsFormValid(Object.keys(newErrors).length === 0);
-  };
-  
-  const handleLogin = () => {
-    if (!isFormValid) {
-      Alert.alert('Invalid Form', 'Please fix the errors in the form');
+  const token = useSelector((state: RootState) => state.auth.token);
+
+  const handleLogin = async () => {
+    if (!credentials.username || !credentials.password) {
+      Alert.alert("Error", "Please enter both username and password.");
       return;
     }
-    
-    // Simulate authentication
-    if (email === 'demo@example.com' && password === 'Password123!') {
-      router.replace('/(tabs)');
-    } else {
-      Alert.alert('Error', 'Invalid email or password');
+    try {
+      setLoading(true);
+      await dispatch(login(credentials)).unwrap();
+    } catch (err: any) {
+      console.log(err.message);
+      Alert.alert("Login Failed", "Invalid credentials or something went wrong.");
+    } finally {
+      setLoading(false);
     }
-    
   };
-  
+
+  useEffect(() => {
+    if (token) {
+      router.replace("/(tabs)");
+    }
+  }, [token, router]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Log In</Text>
-      
+    
       <TextInput
-        style={[styles.input, errors.email ? styles.inputError : null]}
+        // style={[styles.input, errors.email ? styles.inputError : null]}
         placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        value={credentials.username}
+        onChangeText={(text) => setCredentials({ ...credentials, username: text })}
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+      {/* {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null} */}
       
       <TextInput
-        style={[styles.input, errors.password ? styles.inputError : null]}
+        // style={[styles.input, errors.password ? styles.inputError : null]}
         placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
+        value={credentials.password}
+        onChangeText={(text) => setCredentials({ ...credentials, password: text })}
         secureTextEntry
       />
-      {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+      {/* {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null} */}
       
       <TouchableOpacity 
-        style={[styles.button, !isFormValid && styles.buttonDisabled]} 
+        // style={[styles.button, !isFormValid && styles.buttonDisabled]} 
         onPress={handleLogin}
-        disabled={!isFormValid}
+        // disabled={!isFormValid}
       >
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>

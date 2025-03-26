@@ -1,10 +1,13 @@
 //profile.tsx
 
+import { Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import { AppDispatch } from '@/stores/store';
 import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Platform, StatusBar } from 'react-native';
+import { logout } from '@/stores/auth/auth-actions';
+import { useDispatch } from 'react-redux';
+import { useRouter } from 'expo-router';
 
-
-// Define types for user profile
 interface UserProfile {
   id: string;
   name: string;
@@ -19,6 +22,8 @@ interface UserProfile {
 }
 
 const ProfileScreen: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   // Mock user data
   const profile: UserProfile = {
     id: 'USR123456',
@@ -45,6 +50,11 @@ const ProfileScreen: React.FC = () => {
   const handleViewHistory = () => {
     console.log('Navigate to payment history');
   };
+
+    const handleLogout = async () => {
+      await dispatch(logout());
+      router.replace("/(auth)/login");
+    }
 
   return (
     <View style={styles.container}>
@@ -148,11 +158,9 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        
-        
         {/* App Version */}
         <View style={styles.versionContainer}>
-        <Text style={styles.historyButtonText}>Log Out</Text>
+        <Button title="Logout" onPress={handleLogout} />
         <Text style={styles.historyButtonText}></Text>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
