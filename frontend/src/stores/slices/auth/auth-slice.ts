@@ -1,10 +1,7 @@
 import { AuthResponse, AuthState } from "@/types/auth-types";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-<<<<<<< HEAD
-import { login, logout, refreshUserToken, register } from "@/stores/slices/auth/auth-actions";
-=======
-import { login, refreshUserToken, register, registerPoliceOfficer } from "@/stores/slices/auth/auth-actions";
->>>>>>> da2e9de (added the police officer register apis)
+import { login, refreshUserToken, register, registerPoliceOfficer ,logout} from "@/stores/slices/auth/auth-actions";
+
 
 const initialState: AuthState = {
   username: null,
@@ -34,12 +31,8 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.token = action.payload.token;
-<<<<<<< HEAD
         state.username = action.payload.username;
         state.role = action.payload.role;
-=======
-        state.user = action.payload.user;
->>>>>>> da2e9de (added the police officer register apis)
         state.loading = false;
         state.error = null;
       })
