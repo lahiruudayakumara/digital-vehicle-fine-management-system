@@ -9,6 +9,7 @@ import java.util.List;
 public class PoliceOfficerResponseDTO {
     private String badgeID;
     private String fullName;
+    private String email;
     private String address;
     private String telephone;
     private List<String> patrolLocations;
