@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { PoliceOfficer, PoliceOfficerUpdate } from '@/types/officer-types';
-import { RootState } from '@/stores/store'; // Ensure this path is correct
+import { RootState } from '@/stores/store'; 
 
-// Import the updated API functions
+
 import {
   fetchPoliceOfficers as fetchOfficersAPI,
   fetchPoliceOfficerById as fetchOfficerByIdAPI,
@@ -15,8 +15,8 @@ export const fetchPoliceOfficers = createAsyncThunk<PoliceOfficer[], void, { sta
   'officers/fetchPoliceOfficers',
   async (_, { rejectWithValue }) => {
     try {
-      const officers = await fetchOfficersAPI(); // Fetch officers from the API
-      return officers; // Return the fetched officers
+      const officers = await fetchOfficersAPI(); 
+      return officers; 
     } catch (error) {
       return rejectWithValue('Failed to fetch officers');
     }
@@ -28,8 +28,8 @@ export const fetchPoliceOfficerById = createAsyncThunk<PoliceOfficer, string, { 
   'officers/fetchPoliceOfficerById',
   async (badgeID, { rejectWithValue }) => {
     try {
-      const officer = await fetchOfficerByIdAPI(badgeID); // Fetch the officer by ID
-      return officer; // Return the fetched officer
+      const officer = await fetchOfficerByIdAPI(badgeID); 
+      return officer; 
     } catch (error) {
       return rejectWithValue('Failed to fetch officer');
     }
@@ -41,8 +41,8 @@ export const updatePoliceOfficer = createAsyncThunk<PoliceOfficer, { badgeID: st
   'officers/updatePoliceOfficer',
   async ({ badgeID, data }, { rejectWithValue }) => {
     try {
-      const updatedOfficer = await updateOfficerAPI(badgeID, data); // Update officer using the API
-      return updatedOfficer; // Return the updated officer
+      const updatedOfficer = await updateOfficerAPI(badgeID, data); 
+      return updatedOfficer;
     } catch (error) {
       return rejectWithValue('Failed to update officer');
     }
@@ -54,8 +54,8 @@ export const deletePoliceOfficer = createAsyncThunk<string, string, { state: Roo
   'officers/deletePoliceOfficer',
   async (badgeID, { rejectWithValue }) => {
     try {
-      await deleteOfficerAPI(badgeID); // Delete officer by ID using the API
-      return badgeID; // Return the badgeID so it can be removed from the state
+      await deleteOfficerAPI(badgeID); 
+      return badgeID; 
     } catch (error) {
       return rejectWithValue('Failed to delete officer');
     }

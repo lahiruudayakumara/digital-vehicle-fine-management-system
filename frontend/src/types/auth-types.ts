@@ -14,12 +14,10 @@ export interface AuthResponse {
     message: string;       // Add the message property
     token: string;
     refresh_token: string;
-<<<<<<< HEAD
     username: string;
     role: string;
-=======
     user: any;             // Or some specific type for the user
->>>>>>> da2e9de (added the police officer register apis)
+
 }
 
 export interface AuthState {

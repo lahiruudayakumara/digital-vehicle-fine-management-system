@@ -1,5 +1,3 @@
-// officer-slice.ts
-
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { PoliceOfficer } from '@/types/officer-types';
 import { fetchPoliceOfficers, fetchPoliceOfficerById, updatePoliceOfficer, deletePoliceOfficer } from './officer-actions';
@@ -7,7 +5,7 @@ import { fetchPoliceOfficers, fetchPoliceOfficerById, updatePoliceOfficer, delet
 interface OfficerState {
   officers: PoliceOfficer[];
   selectedOfficer: PoliceOfficer | null;
-  selectedBadgeId: string | null;  // Added to store selected badge ID
+  selectedBadgeId: string | null;  
   loading: boolean;
   error: string | null;
 }
@@ -15,7 +13,7 @@ interface OfficerState {
 const initialState: OfficerState = {
   officers: [],
   selectedOfficer: null,
-  selectedBadgeId: null,  // Initialize as null
+  selectedBadgeId: null, 
   loading: false,
   error: null,
 };
@@ -24,11 +22,11 @@ const officerSlice = createSlice({
   name: 'officer',
   initialState,
   reducers: {
-    // Add action to set selected badge ID
+    
     setSelectedBadgeId: (state, action: PayloadAction<string>) => {
       state.selectedBadgeId = action.payload;
     },
-    // Optional: Add action to clear selection
+    
     clearSelection: (state) => {
       state.selectedBadgeId = null;
       state.selectedOfficer = null;
@@ -102,7 +100,7 @@ const officerSlice = createSlice({
   },
 });
 
-// Export the new actions
+
 export const { setSelectedBadgeId, clearSelection } = officerSlice.actions;
 
 export default officerSlice.reducer;
