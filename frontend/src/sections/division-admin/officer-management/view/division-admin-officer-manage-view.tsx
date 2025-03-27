@@ -1,41 +1,38 @@
 import { useEffect, useState } from "react";
 import { FaPen, FaTrash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPoliceOfficers, deletePoliceOfficer } from "@/stores/slices/officer/officer-actions";
-import { RootState } from "@/stores/store"; 
-import { AppDispatch } from "@/stores/store"; // Import the AppDispatch type
+import { fetchPoliceOfficers, deletePoliceOfficer, fetchPoliceOfficerById } from "@/stores/slices/officer/officer-actions";
+import { setSelectedBadgeId } from "@/stores/slices/officer/officer-slice";
+import { RootState, AppDispatch } from "@/stores/store";
 import UpdateOfficer from "../../update/view/division-admin-update-officer";
-import { PoliceOfficer } from "@/types/officer-types"; 
+import { PoliceOfficer } from "@/types/officer-types";
 
 const OfficerManageView = () => {
-  const dispatch = useDispatch<AppDispatch>(); // Correctly type dispatch
-  const officers = useSelector((state: RootState) => state.officer.officers);
-  const loading = useSelector((state: RootState) => state.officer.loading);
+  const dispatch = useDispatch<AppDispatch>();
+  const { officers, loading, selectedBadgeId, selectedOfficer } = useSelector((state: RootState) => state.officer);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [deleteOfficerId, setDeleteOfficerId] = useState<string | null>(null);
-  const [selectedOfficer, setSelectedOfficer] = useState<PoliceOfficer | null>(null);
-  const [ismodalopen, setIsmodalopen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [locationFilter, setLocationFilter] = useState<string>("");
 
-  // Fetch officers on component mount
   useEffect(() => {
     dispatch(fetchPoliceOfficers());
   }, [dispatch]);
 
-  // Extract unique patrol locations for the dropdown
   const patrolLocations = Array.from(
     new Set(officers.flatMap((officer) => officer.patrolLocations))
   );
 
   const handleEdit = (officer: PoliceOfficer): void => {
-    setSelectedOfficer(officer);
-    setIsmodalopen(true);
+    dispatch(setSelectedBadgeId(officer.badgeID));
+    dispatch(fetchPoliceOfficerById(officer.badgeID));
+    setIsModalOpen(true);
   };
 
   const handleDelete = () => {
     if (deleteOfficerId) {
       dispatch(deletePoliceOfficer(deleteOfficerId));
-      setDeleteOfficerId(null); // Close modal after deletion
+      setDeleteOfficerId(null);
     }
   };
 
@@ -47,7 +44,6 @@ const OfficerManageView = () => {
     setLocationFilter(e.target.value);
   };
 
-  // Reset both filters
   const resetFilters = () => {
     setSearchTerm("");
     setLocationFilter("");
@@ -57,10 +53,10 @@ const OfficerManageView = () => {
     const csvContent =
       "data:text/csv;charset=utf-8," +
       [
-        "Officer ID,Officer Name,Mobile Phone,Address,Patrol Location",
+        "Officer ID,Officer Name,Email,Mobile Phone,Address,Patrol Location",
         ...officers.map(
           (o) =>
-            `${o.badgeID},${o.fullName},${o.telephone},${o.address},${o.patrolLocations.join(",")}`
+            `${o.badgeID},${o.fullName},${o.email},${o.telephone},${o.address},${o.patrolLocations.join(",")}`
         ),
       ].join("\n");
 
@@ -73,15 +69,17 @@ const OfficerManageView = () => {
     document.body.removeChild(link);
   };
 
-  // Filter officers based on both search term and location filter
+  const handleUpdateSuccess = () => {
+    dispatch(fetchPoliceOfficers());
+    setIsModalOpen(false);
+  };
+
   const filteredOfficers = officers.filter((officer) => {
     const matchesSearch =
       officer.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       officer.badgeID.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesLocation =
       locationFilter === "" || officer.patrolLocations.includes(locationFilter);
-
     return matchesSearch && matchesLocation;
   });
 
@@ -109,6 +107,8 @@ const OfficerManageView = () => {
               className="px-4 py-2 w-full bg-white border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchTerm}
               onChange={handleSearchChange}
+              autoComplete="off"
+              name="search-field"
             />
           </div>
           <div className="flex-1 min-w-[250px]">
@@ -136,13 +136,13 @@ const OfficerManageView = () => {
           </div>
         </div>
 
-        {/* Table of Officers */}
         <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-700">
               <tr>
-                <th className="p-3">Officer ID</th>
+                <th className="p-3">Badge ID</th>
                 <th className="p-3">Officer Name</th>
+                <th className="p-3">Email</th>
                 <th className="p-3">Mobile Phone</th>
                 <th className="p-3">Address</th>
                 <th className="p-3">Patrol Location</th>
@@ -152,7 +152,7 @@ const OfficerManageView = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-3 text-center text-gray-500">
+                  <td colSpan={6} className="p-3 text-center text-gray-500">
                     Loading officers...
                   </td>
                 </tr>
@@ -164,6 +164,7 @@ const OfficerManageView = () => {
                   >
                     <td className="p-3">{officer.badgeID}</td>
                     <td className="p-3">{officer.fullName}</td>
+                    <td className="p-3">{officer.email}</td>
                     <td className="p-3">{officer.telephone}</td>
                     <td className="p-3">{officer.address}</td>
                     <td className="p-3">{officer.patrolLocations.join(", ")}</td>
@@ -185,7 +186,7 @@ const OfficerManageView = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-3 text-center text-gray-500">
+                  <td colSpan={6} className="p-3 text-center text-gray-500">
                     No officers found
                   </td>
                 </tr>
@@ -194,7 +195,6 @@ const OfficerManageView = () => {
           </table>
         </div>
 
-        {/* Delete Confirmation Modal */}
         {deleteOfficerId && (
           <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-50 backdrop-blur-md bg-gray-200/30">
             <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-300">
@@ -219,10 +219,10 @@ const OfficerManageView = () => {
         )}
       </div>
       <UpdateOfficer
-        isOpen={ismodalopen}
-        onClose={() => setIsmodalopen(false)}
-        officer={selectedOfficer} // Pass selectedOfficer to UpdateOfficer
-        onSubmit={() => {}}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        officer={selectedOfficer}
+        onSubmit={handleUpdateSuccess}
       />
     </div>
   );
