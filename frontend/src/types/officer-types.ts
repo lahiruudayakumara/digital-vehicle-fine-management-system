@@ -5,22 +5,24 @@ export interface PoliceOfficer {
     fullName: string;
     address: string;
     telephone: string;
+    email: string;
     patrolLocations: string[];
   }
   
   export interface PoliceOfficerUpdate {
+    username?: string;
     fullName: string;
-    username: string;
-    email: string;
-    password: string;
-    address: string;
     telephone: string;
+    email: string;
+    address: string;
+    password?: string; 
     patrolLocations: string[];
   }
   
   export interface PoliceOfficerResponseDTO {
     badgeID: string;
     fullName: string;
+    email: string;
     address: string;
     telephone: string;
     patrolLocations: string[];
