@@ -7,6 +7,7 @@ import { fetchPoliceOfficers, fetchPoliceOfficerById, updatePoliceOfficer, delet
 interface OfficerState {
   officers: PoliceOfficer[];
   selectedOfficer: PoliceOfficer | null;
+  selectedBadgeId: string | null;  // Added to store selected badge ID
   loading: boolean;
   error: string | null;
 }
@@ -14,6 +15,7 @@ interface OfficerState {
 const initialState: OfficerState = {
   officers: [],
   selectedOfficer: null,
+  selectedBadgeId: null,  // Initialize as null
   loading: false,
   error: null,
 };
@@ -21,7 +23,17 @@ const initialState: OfficerState = {
 const officerSlice = createSlice({
   name: 'officer',
   initialState,
-  reducers: {},
+  reducers: {
+    // Add action to set selected badge ID
+    setSelectedBadgeId: (state, action: PayloadAction<string>) => {
+      state.selectedBadgeId = action.payload;
+    },
+    // Optional: Add action to clear selection
+    clearSelection: (state) => {
+      state.selectedBadgeId = null;
+      state.selectedOfficer = null;
+    },
+  },
   extraReducers: (builder) => {
     // Fetch all officers
     builder.addCase(fetchPoliceOfficers.pending, (state) => {
@@ -42,6 +54,7 @@ const officerSlice = createSlice({
     });
     builder.addCase(fetchPoliceOfficerById.fulfilled, (state, action) => {
       state.selectedOfficer = action.payload;
+      state.selectedBadgeId = action.payload.badgeID;  // Store the badge ID
       state.loading = false;
     });
     builder.addCase(fetchPoliceOfficerById.rejected, (state, action) => {
@@ -58,6 +71,10 @@ const officerSlice = createSlice({
       if (index !== -1) {
         state.officers[index] = action.payload;
       }
+      // Update selected officer and badge ID if it matches
+      if (state.selectedBadgeId === action.payload.badgeID) {
+        state.selectedOfficer = action.payload;
+      }
       state.loading = false;
     });
     builder.addCase(updatePoliceOfficer.rejected, (state, action) => {
@@ -71,6 +88,11 @@ const officerSlice = createSlice({
     });
     builder.addCase(deletePoliceOfficer.fulfilled, (state, action) => {
       state.officers = state.officers.filter((officer) => officer.badgeID !== action.meta.arg);
+      // Clear selection if deleted officer was selected
+      if (state.selectedBadgeId === action.meta.arg) {
+        state.selectedBadgeId = null;
+        state.selectedOfficer = null;
+      }
       state.loading = false;
     });
     builder.addCase(deletePoliceOfficer.rejected, (state, action) => {
@@ -79,5 +101,8 @@ const officerSlice = createSlice({
     });
   },
 });
+
+// Export the new actions
+export const { setSelectedBadgeId, clearSelection } = officerSlice.actions;
 
 export default officerSlice.reducer;
