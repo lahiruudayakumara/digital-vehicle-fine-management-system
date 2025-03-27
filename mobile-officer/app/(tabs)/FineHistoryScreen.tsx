@@ -164,7 +164,7 @@ const FineHistoryScreen: React.FC = () => {
       <Text>Status: <Text style={item.status === 'Completed' ? styles.completed : styles.pending}>{item.status}</Text></Text>
       <View style={styles.cardActions}>
         <TouchableOpacity style={styles.updateButton} onPress={() => handleUpdate(item)}>
-          <Icon name="pencil" size={18} color="#007AFF" /> {/* Update Icon */}
+          <Icon name="pencil" size={18} color="#fff" /> {/* Update Icon */}
           <Text style={styles.updateButtonText}>Update</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item)}>
