@@ -16,8 +16,7 @@ export interface AuthResponse {
     refresh_token: string;
     username: string;
     role: string;
-    user: any;             // Or some specific type for the user
-
+              // Or some specific type for the user
 }
 
 export interface AuthState {
