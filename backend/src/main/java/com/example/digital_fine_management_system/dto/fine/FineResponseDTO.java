@@ -17,19 +17,4 @@ public class FineResponseDTO {
     private String status; // Fine status (PENDING, COMPLETED)
     private LocalDateTime createdAt; // Date and time when the fine was created
     private LocalDateTime updatedAt; // Date and time when the fine was last updated
-
-    // Constructor to map the Fine model to this DTO
-    public FineResponseDTO() {
-        this.fineId = fineId;
-        this.driverName = driverName;
-        this.licenseNumber = licenseNumber;
-        this.vehicleNumber = vehicleNumber;
-        this.location = location;
-        this.category = category;
-        this.fineAmount = fineAmount;
-        this.policeOfficerId = policeOfficerId;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 }
