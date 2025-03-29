@@ -15,14 +15,14 @@ const FineHistoryScreen = () => {
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [selectedFine, setSelectedFine] = useState<Fine | null>(null);
   const [updatedFineData, setUpdatedFineData] = useState<FineRequest>({
-      driverName: '',
-      licenseNumber: '',
-      vehicleNumber: '',
-      fineAmount: 0,
-      category: '',
-      location: '',
-      policeOfficerId: 0, // Add this field with a default value
-    });
+    driverName: '',
+    licenseNumber: '',
+    vehicleNumber: '',
+    fineAmount: 0,
+    category: '',
+    location: '',
+    policeOfficerId: 0,
+  });
 
   useEffect(() => {
     dispatch(getAllFinesAction());
@@ -47,14 +47,14 @@ const FineHistoryScreen = () => {
   const handleUpdateFine = (fine: Fine) => {
     setSelectedFine(fine);
     setUpdatedFineData({
-          driverName: fine.driverName,
-          licenseNumber: fine.licenseNumber,
-          vehicleNumber: fine.vehicleNumber,
-          fineAmount: fine.fineAmount,
-          category: fine.category || '',
-          location: fine.location || '', // Ensure location is included
-          policeOfficerId: fine.policeOfficerId || 0 // Ensure policeOfficerId is included
-        });
+      driverName: fine.driverName,
+      licenseNumber: fine.licenseNumber,
+      vehicleNumber: fine.vehicleNumber,
+      fineAmount: fine.fineAmount,
+      category: fine.category || '',
+      location: fine.location || '',
+      policeOfficerId: fine.policeOfficerId || 0
+    });
     setUpdateModalVisible(true);
   };
 
@@ -64,15 +64,14 @@ const FineHistoryScreen = () => {
       status: 'Completed'
     };
 
-    // Only include the fields needed for the update request
     const updateData: FineRequest = {
       driverName: completedFineData.driverName,
       licenseNumber: completedFineData.licenseNumber,
       vehicleNumber: completedFineData.vehicleNumber,
       fineAmount: completedFineData.fineAmount,
       category: completedFineData.category || '',
-      location: completedFineData.location || '', // Add location
-      policeOfficerId: completedFineData.policeOfficerId || 0, // Add policeOfficerId
+      location: completedFineData.location || '',
+      policeOfficerId: completedFineData.policeOfficerId || 0,
     };
 
     dispatch(updateFineAction({
@@ -85,9 +84,19 @@ const FineHistoryScreen = () => {
     if (!selectedFine) return;
 
     try {
+      const allowedUpdateData = {
+        driverName: updatedFineData.driverName,
+        licenseNumber: updatedFineData.licenseNumber,
+        vehicleNumber: updatedFineData.vehicleNumber,
+        fineAmount: selectedFine.fineAmount,
+        category: selectedFine.category || '',
+        location: selectedFine.location || '',
+        policeOfficerId: selectedFine.policeOfficerId || 0,
+      };
+
       const resultAction = await dispatch(updateFineAction({
         fineId: selectedFine.fineId,
-        fineData: updatedFineData
+        fineData: allowedUpdateData
       }));
 
       if (updateFineAction.fulfilled.match(resultAction)) {
@@ -102,25 +111,21 @@ const FineHistoryScreen = () => {
     }
   };
 
-  const filteredFines = fines.filter((fine: Fine) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toUpperCase();
-    switch (filterType) {
-      case 'name':
-        return fine.driverName.toUpperCase().includes(query);
-      case 'license':
-        return fine.licenseNumber.toUpperCase().includes(query);
-      case 'vehicle':
-        return fine.vehicleNumber.toUpperCase().includes(query);
-      default:
-        return true;
-    }
-  });
-
-  // Calculate counts for status boxes
   const pendingCount = fines.filter(fine => fine.status === 'PENDING').length;
   const completedCount = fines.filter(fine => fine.status === 'COMPLETED').length;
   const totalCount = fines.length;
+
+  const filteredFines = fines.filter((fine) => {
+    const query = searchQuery.toLowerCase();
+    if (filterType === 'name') {
+      return fine.driverName.toLowerCase().includes(query);
+    } else if (filterType === 'license') {
+      return fine.licenseNumber.toLowerCase().includes(query);
+    } else if (filterType === 'vehicle') {
+      return fine.vehicleNumber.toLowerCase().includes(query);
+    }
+    return false;
+  });
 
   const renderUpdateModal = () => {
     return (
@@ -158,25 +163,6 @@ const FineHistoryScreen = () => {
               placeholder="Enter vehicle number"
             />
 
-            <Text style={styles.inputLabel}>Fine Amount</Text>
-            <TextInput
-              style={styles.input}
-              value={updatedFineData.fineAmount.toString()}
-              onChangeText={(text) => setUpdatedFineData({ ...updatedFineData, fineAmount: parseFloat(text) || 0 })}
-              placeholder="Enter fine amount"
-              keyboardType="numeric"
-            />
-
-            <Text style={styles.inputLabel}>Violation</Text>
-            <TextInput
-              style={styles.input}
-              value={updatedFineData.category}
-              onChangeText={(text) => setUpdatedFineData({ ...updatedFineData, category: text })}
-              placeholder="Enter violation details"
-              multiline
-            />
-            
-
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
@@ -206,52 +192,70 @@ const FineHistoryScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterContainer}>
+      <View style={styles.searchSection}>
         <TextInput
           style={styles.searchInput}
           placeholder={`Search by ${filterType}...`}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
         <View style={styles.filterButtons}>
           <TouchableOpacity
             style={[styles.filterButton, filterType === 'name' && styles.activeFilterButton]}
             onPress={() => setFilterType('name')}
           >
-            <Text>Name</Text>
+            <Text style={filterType === 'name' ? styles.activeFilterText : styles.filterText}>Name</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, filterType === 'license' && styles.activeFilterButton]}
             onPress={() => setFilterType('license')}
           >
-            <Text>License</Text>
+            <Text style={filterType === 'license' ? styles.activeFilterText : styles.filterText}>License</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, filterType === 'vehicle' && styles.activeFilterButton]}
             onPress={() => setFilterType('vehicle')}
           >
-            <Text>Vehicle</Text>
+            <Text style={filterType === 'vehicle' ? styles.activeFilterText : styles.filterText}>Vehicle</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.statusContainer}>
-        <Text style={styles.statusBox}>{pendingCount}{'\n'}Pending</Text>
-        <Text style={styles.statusBox}>{completedCount}{'\n'}Completed</Text>
-        <Text style={styles.statusBox}>{totalCount}{'\n'}Total</Text>
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>{pendingCount}</Text>
+          <Text style={styles.statLabel}>Pending</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>{completedCount}</Text>
+          <Text style={styles.statLabel}>Completed</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statNumber}>{totalCount}</Text>
+          <Text style={styles.statLabel}>Total</Text>
+        </View>
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#505DD1" />
+          <Text style={styles.loadingText}>Loading fines...</Text>
+        </View>
       ) : (
-        <ScrollView>
+        <ScrollView style={styles.finesList}>
           {filteredFines.length === 0 ? (
-            <Text style={styles.noResultsText}>No fines found matching your search</Text>
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No fines found matching your search</Text>
+              <Text style={styles.emptyStateSubtext}>Try adjusting your search criteria</Text>
+            </View>
           ) : (
             filteredFines.map((fine: Fine) => (
-              <View key={fine.fineId} style={styles.fineItem}>
+              <View key={fine.fineId} style={styles.fineCard}>
                 <View style={styles.fineHeader}>
-                  <Text style={styles.driverName}>{fine.driverName}</Text>
+                  <View>
+                    <Text style={styles.driverName}>{fine.driverName}</Text>
+                    <Text style={styles.fineDate}>{fine.createdAt}</Text>
+                  </View>
                   <Text style={[
                     styles.statusTag,
                     fine.status === 'COMPLETED' ? styles.completedTag : styles.pendingTag
@@ -259,31 +263,45 @@ const FineHistoryScreen = () => {
                     {fine.status}
                   </Text>
                 </View>
-                <Text>License: {fine.licenseNumber}</Text>
-                <Text>Vehicle: {fine.vehicleNumber}</Text>
-                <Text>Date: {fine.createdAt}</Text>
-                <Text>Fine: Rs {fine.fineAmount}</Text>
-                {fine.category && <Text>Violation: {fine.category}</Text>}
-                <View style={styles.actionButtons}>
-                  {fine.status !== 'COMPLETED' && (
-                    <TouchableOpacity
-                      style={styles.completeButton}
-                      onPress={() => handleCompleteFine(fine)}
-                    >
-                      <Text style={styles.actionButtonText}>✔ Complete</Text>
-                    </TouchableOpacity>
+
+                <View style={styles.fineDetails}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>License:</Text>
+                    <Text style={styles.detailValue}>{fine.licenseNumber}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Vehicle:</Text>
+                    <Text style={styles.detailValue}>{fine.vehicleNumber}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Amount:</Text>
+                    <Text style={styles.detailValue}>Rs {fine.fineAmount}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Location:</Text>
+                    <Text style={styles.detailValue}>{fine.location}</Text>
+                  </View>
+                  {fine.category && (
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Category:</Text>
+                      <Text style={styles.detailValue}>{fine.category}</Text>
+                    </View>
                   )}
+                </View>
+
+                <View style={styles.actionButtons}>
+                  
                   <TouchableOpacity
                     style={styles.updateButton}
                     onPress={() => handleUpdateFine(fine)}
                   >
-                    <Text style={styles.actionButtonText}>✏ Update</Text>
+                    <Text style={styles.actionButtonText}>✎ Update</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => handleDeleteFine(fine.fineId)}
                   >
-                    <Text style={styles.actionButtonText}>🗑 Delete</Text>
+                    <Text style={styles.actionButtonText}>✕ Delete</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -298,46 +316,275 @@ const FineHistoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#F8F8F8' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  title: { fontSize: 24, fontWeight: 'bold' },
-  exportButton: { backgroundColor: '#007BFF', padding: 10, borderRadius: 5 },
-  exportText: { color: '#FFF', fontWeight: 'bold' },
-  searchInput: { flex: 1, borderWidth: 1, padding: 10, borderRadius: 5, backgroundColor: '#FFF' },
-  filterContainer: { marginBottom: 10 },
-  filterButtons: { flexDirection: 'row', marginTop: 5 },
-  filterButton: { padding: 8, marginRight: 5, borderRadius: 5, backgroundColor: '#EFEFEF' },
-  activeFilterButton: { backgroundColor: '#007BFF' },
-  statusContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
-  statusBox: { backgroundColor: '#FFF', padding: 10, borderRadius: 5, textAlign: 'center', fontWeight: 'bold', width: 100 },
-  fineItem: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, marginBottom: 10 },
-  fineHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
-  driverName: { fontWeight: 'bold', fontSize: 16 },
-  statusTag: { color: '#FFF', padding: 5, borderRadius: 5 },
-  pendingTag: { backgroundColor: '#FFA500' },
-  completedTag: { backgroundColor: '#28A745' },
-  actionButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 },
-  completeButton: { backgroundColor: '#28A745', padding: 10, borderRadius: 5 },
-  updateButton: { backgroundColor: '#007BFF', padding: 10, borderRadius: 5 },
-  deleteButton: { backgroundColor: '#DC3545', padding: 10, borderRadius: 5 },
-  actionButtonText: { color: '#FFF', fontWeight: 'bold' },
-  noResultsText: { textAlign: 'center', marginTop: 20, fontSize: 16 },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#F5F7FA'
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 8
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1A2138'
+  },
+  exportButton: {
+    backgroundColor: '#505DD1',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    elevation: 2
+  },
+  exportText: {
+    color: '#FFF',
+    fontWeight: 'bold'
+  },
+  searchSection: {
+    marginBottom: 16
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#E1E5EB',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    fontSize: 16,
+    marginBottom: 8
+  },
+  filterButtons: {
+    flexDirection: 'row',
+    marginTop: 8
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: '#E1E5EB',
+    borderWidth: 1,
+    borderColor: 'transparent'
+  },
+  activeFilterButton: {
+    backgroundColor: '#EEF0FF',
+    borderColor: '#505DD1'
+  },
+  filterText: {
+    color: '#6B7280'
+  },
+  activeFilterText: {
+    color: '#505DD1',
+    fontWeight: 'bold'
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E1E5EB'
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1A2138'
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#6B7280',
+    fontSize: 16
+  },
+  finesList: {
+    flex: 1
+  },
+  emptyState: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6B7280'
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 8
+  },
+  fineCard: {
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E1E5EB',
+    elevation: 2
+  },
+  fineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12
+  },
+  driverName: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    color: '#1A2138'
+  },
+  fineDate: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4
+  },
+  statusTag: {
+    color: '#FFF',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    fontSize: 12,
+    fontWeight: 'bold'
+  },
+  pendingTag: {
+    backgroundColor: '#F59E0B'
+  },
+  completedTag: {
+    backgroundColor: '#10B981'
+  },
+  fineDetails: {
+    marginBottom: 12,
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 8
+  },
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 8
+  },
+  detailLabel: {
+    width: 80,
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: 'bold'
+  },
+  detailValue: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1A2138'
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8
+  },
+  completeButton: {
+    backgroundColor: '#10B981',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginLeft: 8
+  },
+  updateButton: {
+    backgroundColor: '#505DD1',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginLeft: 8
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginLeft: 8
+  },
+  actionButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 14
+  },
 
   // Modal styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContainer: { width: '90%', backgroundColor: '#FFF', borderRadius: 10, padding: 20 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  inputLabel: { fontSize: 14, fontWeight: 'bold', marginBottom: 5 },
-  input: { borderWidth: 1, borderColor: '#DDD', borderRadius: 5, padding: 10, marginBottom: 15 },
-  modalButtons: { flexDirection: 'row', justifyContent: 'space-between' },
-  modalButton: { padding: 12, borderRadius: 5, width: '48%', alignItems: 'center' },
-  saveButton: { backgroundColor: '#007BFF' },
-  cancelButton: { backgroundColor: '#6C757D' },
-  buttonText: { color: '#FFF', fontWeight: 'bold' },
-  statusButtons: { flexDirection: 'row', marginBottom: 15 },
-  statusButton: { flex: 1, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#DDD' },
-  activeStatusButton: { backgroundColor: '#007BFF', borderColor: '#007BFF' },
-  activeStatusText: { color: '#FFF' }
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalContainer: {
+    width: '90%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 20,
+    elevation: 5
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#1A2138'
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#374151'
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E1E5EB',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    backgroundColor: '#F9FAFB'
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8
+  },
+  modalButton: {
+    padding: 14,
+    borderRadius: 8,
+    width: '48%',
+    alignItems: 'center',
+    elevation: 2
+  },
+  saveButton: {
+    backgroundColor: '#505DD1'
+  },
+  cancelButton: {
+    backgroundColor: '#9CA3AF'
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16
+  }
 });
 
 export default FineHistoryScreen;
