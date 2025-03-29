@@ -1,337 +1,128 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Platform, Alert, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteFineAction, getAllFinesAction } from '@/stores/slices/fine/fine-action'; // Updated action import
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import DropDownPicker from 'react-native-dropdown-picker';
-import Icon from 'react-native-vector-icons/FontAwesome';  // Import FontAwesome icons
+import { AppDispatch } from '@/stores/store'; // Import the AppDispatch type
+import { Fine } from '@/types/fine-types'; // Import the Fine type
+import { RootState } from '@/stores/reducers';
 
-const FineHistoryScreen: React.FC = () => {
-  const fineData = [
-    { driverName: 'Abram Vaccaro', licenseNumber: 'ABX-2938-PLIQ', vehicleNumber: 'CAB-1234', date: '2025/02/20', Location: 'Colombo', category: 'SPD', fine: 'Rs 1000', status: 'Pending' },
-    { driverName: 'Skyler Bator', licenseNumber: 'ZKY-7451-WNM', vehicleNumber: 'WP-ABC-5678', date: '2025/02/20', Location: 'Galle', category: 'TSV', fine: 'Rs 1500', status: 'Pending' },
-    { driverName: 'Liam Grace', licenseNumber: 'LGR-9824-ABC', vehicleNumber: 'LMN-9876', date: '2025/03/01', Location: 'Kandy', category: 'SPD', fine: 'Rs 2000', status: 'Completed' },
-    { driverName: 'Olivia Johnson', licenseNumber: 'OJN-4672-XYZ', vehicleNumber: 'ABC-1324', date: '2025/03/05', Location: 'Jaffna', category: 'RSP', fine: 'Rs 1200', status: 'Pending' },
-    { driverName: 'Noah Parker', licenseNumber: 'NPK-8357-KLP', vehicleNumber: 'XYZ-7777', date: '2025/03/10', Location: 'Matara', category: 'TSV', fine: 'Rs 1800', status: 'Completed' },
-    { driverName: 'Emma Williams', licenseNumber: 'EMW-1549-GHQ', vehicleNumber: 'DEF-5678', date: '2025/03/15', Location: 'Negombo', category: 'SPD', fine: 'Rs 2500', status: 'Pending' },
-    { driverName: 'Ava Davis', licenseNumber: 'AVD-2368-JKQ', vehicleNumber: 'GHI-2234', date: '2025/03/18', Location: 'Kurunegala', category: 'RSP', fine: 'Rs 3000', status: 'Completed' },
-    { driverName: 'Mason Brown', licenseNumber: 'MNB-5564-PRT', vehicleNumber: 'JKL-9988', date: '2025/03/20', Location: 'Anuradhapura', category: 'TSV', fine: 'Rs 1100', status: 'Pending' },
-    { driverName: 'Isabella Moore', licenseNumber: 'ISM-7893-KTQ', vehicleNumber: 'MNO-1122', date: '2025/03/25', Location: 'Ratnapura', category: 'SPD', fine: 'Rs 1300', status: 'Completed' },
-    { driverName: 'Lucas Harris', licenseNumber: 'LHR-9825-WNV', vehicleNumber: 'PQR-6677', date: '2025/03/28', Location: 'Badulla', category: 'RSP', fine: 'Rs 1600', status: 'Pending' },
-  ];
-
+const FineHistoryScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { fines, loading } = useSelector((state: RootState) => state.fines);
   const [searchQuery, setSearchQuery] = useState('');
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [filterType, setFilterType] = useState<'name' | 'license' | 'date'>('name');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [selectedFine, setSelectedFine] = useState<any>(null);
-  const [updatedFine, setUpdatedFine] = useState({
-    driverName: '',
-    licenseNumber: '',
-    vehicleNumber: '',
-    date: '',
-    Location: '',
-    category: '',
-    fine: '',
-    status: '',
-  });
-  
+  const [filterType, setFilterType] = useState('name');
 
-  const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}/${month}/${day}`;
-  };
+  useEffect(() => {
+    dispatch(getAllFinesAction());
+  }, [dispatch]);
 
-  const filterOptions = [
-    { label: 'Search by Driver Name', value: 'name' },
-    { label: 'Search by Driver License Number', value: 'license' },
-    { label: 'Search by fine Date', value: 'date' },
-  ];
+  const handleDeleteFine = (fineId: number) => {
+    console.log("Deleting Fine ID:", fineId); // Debug log
 
-  const filteredData = fineData.filter((item) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return filterType === 'name' ? item.driverName.toLowerCase().includes(query) :
-      filterType === 'license' ? item.licenseNumber.toLowerCase().includes(query) :
-        item.date.includes(query);
-  });
-
-  const onDateChange = (event: any, selected?: Date) => {
-    const currentDate = selected || selectedDate;
-    setShowDatePicker(Platform.OS === 'ios');
-    setSelectedDate(currentDate);
-    setSearchQuery(formatDate(currentDate));
-  };
-
-  const handleDelete = (item: any) => {
-    Alert.alert(
-      'Delete Fine Record',
-      'Are you sure you want to delete this fine record?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'OK',
-          onPress: () => {
-            // Perform the delete action here (e.g., remove from the list, API call, etc.)
-            console.log('Fine record deleted:', item);
-          },
+    Alert.alert('Delete Fine', 'Are you sure you want to delete this fine?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const resultAction = await dispatch(deleteFineAction(fineId));
+          console.log("Delete Result:", resultAction);
         },
-      ],
-      { cancelable: false }
-    );
+      },
+    ]);
   };
 
-  const handleUpdate = (item: any) => {
-    setSelectedFine(item);
-    setUpdatedFine(item);
-    setShowUpdateModal(true);
-  };
-
-  const handleSaveUpdate = () => {
-    // Update the fineData array with the updated fine details
-    const updatedData = fineData.map((fine) =>
-      fine.licenseNumber === selectedFine.licenseNumber ? updatedFine : fine
-    );
-    console.log('Updated Fine Record:', updatedData);
-    setShowUpdateModal(false);
-  };
-
-  const renderCard = ({ item }: { item: { driverName: string; licenseNumber: string; vehicleNumber: string; date: string; Location: string; category: string; fine: string; status: string } }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Driver: {item.driverName}</Text>
-      <Text>License Number: {item.licenseNumber}</Text>
-      <Text>Vehicle Number: {item.vehicleNumber}</Text>
-      <Text>Date: {item.date}</Text>
-      <Text>Category: {item.category}</Text>
-      <Text>Fine: {item.fine}</Text>
-      <Text>Status: <Text style={item.status === 'Completed' ? styles.completed : styles.pending}>{item.status}</Text></Text>
-      <View style={styles.cardActions}>
-        <TouchableOpacity style={styles.updateButton} onPress={() => handleUpdate(item)}>
-          <Icon name="pencil" size={18} color="#007AFF" /> {/* Update Icon */}
-          <Text style={styles.updateButtonText}>Update</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item)}>
-          <Icon name="trash" size={18} color="#fff" /> {/* Delete Icon */}
-          <Text style={styles.buttonText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  const filteredFines = fines.filter((fine: Fine) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toUpperCase();
+    switch (filterType) {
+      case 'name':
+        return fine.driverName.toUpperCase().includes(query);
+      case 'license':
+        return fine.licenseNumber.toUpperCase().includes(query);
+      case 'vehicle':
+        return fine.vehicleNumber.toUpperCase().includes(query);
+      default:
+        return true;
+    }
+  });
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={[styles.title, { textAlign: 'center' }]}>Fine History</Text>
-
-      <DropDownPicker
-        open={openDropdown}
-        value={filterType}
-        items={filterOptions}
-        setOpen={setOpenDropdown}
-        setValue={setFilterType}
-        placeholder="Select Filter"
-        style={styles.dropdown}
-        dropDownContainerStyle={styles.dropdownContainer}
-      />
+      <View style={styles.header}>
+        <Text style={styles.title}>Fine History</Text>
+        <TouchableOpacity style={styles.exportButton}>
+          <Text style={styles.exportText}>📄 Export Report</Text>
+        </TouchableOpacity>
+      </View>
 
       <TextInput
         style={styles.searchInput}
-        placeholder={`Search by ${filterType}`}
-        value={filterType === 'date' ? searchQuery : undefined}
-        onChangeText={(text) => setSearchQuery(text)}
-        onFocus={() => filterType === 'date' && setShowDatePicker(true)}
-        editable={filterType !== 'date'}
+        placeholder="Search by name..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
       />
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-        />
+      <View style={styles.statusContainer}>
+        <Text style={styles.statusBox}>6{'\n'}Pending</Text>
+        <Text style={styles.statusBox}>4{'\n'}Completed</Text>
+        <Text style={styles.statusBox}>10{'\n'}Total</Text>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <ScrollView>
+          {filteredFines.map((fine: Fine) => (
+            <View key={fine.fineId} style={styles.fineItem}>
+              <View style={styles.fineHeader}>
+                <Text style={styles.driverName}>{fine.driverName}</Text>
+                <Text style={styles.statusTag}>{fine.status}</Text>
+              </View>
+              <Text>License: {fine.licenseNumber}</Text>
+              <Text>Vehicle: {fine.vehicleNumber}</Text>
+              <Text>Date: {fine.createdAt}</Text>
+              <Text>Fine: Rs {fine.fineAmount}</Text>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity style={styles.completeButton}>
+                  <Text>✔ Complete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.updateButton}>
+                  <Text>✏ Update</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteFine(fine.fineId)}
+                >
+                  <Text>🗑 Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
       )}
-
-      <TouchableOpacity style={styles.generateButton}>
-        <Text style={styles.generateButtonText}>Generate a Report</Text>
-      </TouchableOpacity>
-
-      <ScrollView style={styles.cardsContainer}>
-        {filteredData.map((item, index) => renderCard({ item }))}
-      </ScrollView>
-
-      {/* Update Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showUpdateModal}
-        onRequestClose={() => setShowUpdateModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Update Fine Record</Text>
-
-            <TextInput
-              style={styles.inputField}
-              placeholder="Driver Name"
-              value={updatedFine.driverName}
-              onChangeText={(text) => setUpdatedFine({ ...updatedFine, driverName: text })}
-            />
-            <TextInput
-              style={styles.inputField}
-              placeholder="License Number"
-              value={updatedFine.licenseNumber}
-              onChangeText={(text) => setUpdatedFine({ ...updatedFine, licenseNumber: text })}
-            />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Vehicle Number"
-              value={updatedFine.vehicleNumber}
-              onChangeText={(text) => setUpdatedFine({ ...updatedFine, vehicleNumber: text })}
-            />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Location"
-              value={updatedFine.Location}
-              onChangeText={(text) => setUpdatedFine({ ...updatedFine, Location: text })}
-            />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Category"
-              value={updatedFine.category}
-              onChangeText={(text) => setUpdatedFine({ ...updatedFine, category: text })}
-            />
-            <TextInput
-              style={styles.inputField}
-              placeholder="Fine Amount"
-              value={updatedFine.fine}
-              onChangeText={(text) => setUpdatedFine({ ...updatedFine, fine: text })}
-            />
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleSaveUpdate}>
-              <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.closeButton} onPress={() => setShowUpdateModal(false)}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff'
-
-  },
-  dropdown: {
-    borderColor: '#ccc',
-    borderWidth: 2,
-    borderRadius: 5,
-    paddingHorizontal: 0,
-    height: 40
-  },
-  dropdownContainer: {
-    borderColor: '#ccc',
-    borderWidth: 5,
-    borderRadius: 5,
-    marginBottom: 5
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold'
-  },
-  searchInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 10
-  },
-  cardsContainer: {
-    flex: 1,
-    padding: 10
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8
-  },
-  cardActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: 15
-  },
-  updateButton: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#007AFF',
-    borderWidth: 2,
-    padding: 10,
-    borderRadius: 5,
-    marginRight: 10,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  updateButtonText: {
-    color: '#007AFF',
-    fontSize: 16, fontWeight: 'bold',
-    marginLeft: 5
-  },
-  deleteButton: {
-    backgroundColor: '#FF3B30',
-    padding: 10,
-    borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    marginLeft: 5
-  },
-  completed: { color: 'green' },
-  pending: { color: 'orange' },
-  generateButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 7,
-    alignItems: 'center',
-    marginVertical: 10,
-    width: 150,
-    alignSelf: 'flex-end'
-  },
-  generateButtonText: {
-    color: '#fff',
-    fontWeight: 'bold'
-  },
-
-  // Modal styles
-  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContainer: { width: 300, backgroundColor: '#fff', padding: 20, borderRadius: 10 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  inputField: { height: 40, borderColor: '#ccc', borderWidth: 1, borderRadius: 5, paddingHorizontal: 10, marginBottom: 10 },
-  saveButton: { backgroundColor: '#007AFF', padding: 11, borderRadius: 10, alignItems: 'center' },
-  saveButtonText: { color: '#fff', fontWeight: 'bold' },
-  closeButton: { backgroundColor: 'red',padding: 10, borderRadius: 10, alignItems: 'center', marginTop: 10 },
-  closeButtonText: { color: 'white', fontWeight: 'bold' },
+  container: { flex: 1, padding: 20, backgroundColor: '#F8F8F8' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  title: { fontSize: 24, fontWeight: 'bold' },
+  exportButton: { backgroundColor: '#007BFF', padding: 10, borderRadius: 5 },
+  exportText: { color: '#FFF', fontWeight: 'bold' },
+  searchInput: { borderWidth: 1, padding: 10, marginBottom: 10, borderRadius: 5, backgroundColor: '#FFF' },
+  statusContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
+  statusBox: { backgroundColor: '#FFF', padding: 10, borderRadius: 5, textAlign: 'center', fontWeight: 'bold', width: 100 },
+  fineItem: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, marginBottom: 10 },
+  fineHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  driverName: { fontWeight: 'bold', fontSize: 16 },
+  statusTag: { backgroundColor: '#FFA500', color: '#FFF', padding: 5, borderRadius: 5 },
+  actionButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 },
+  completeButton: { backgroundColor: '#28A745', padding: 10, borderRadius: 5 },
+  updateButton: { backgroundColor: '#007BFF', padding: 10, borderRadius: 5 },
+  deleteButton: { backgroundColor: '#DC3545', padding: 10, borderRadius: 5 }
 });
 
 export default FineHistoryScreen;
