@@ -21,8 +21,9 @@ import { createFineAction, getAllFinesAction } from "@/stores/slices/fine/fine-a
 import { useCameraPermissions } from "expo-camera";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from '@react-navigation/native';
-import { AppDispatch } from "../../stores/store"; // Moved outside the component
+import { AppDispatch } from "../../stores/store";
 import { NavigationProp } from '@react-navigation/native';
+import { FineRequest } from "@/types/fine-types";
 
 // Define navigation param types
 type RootStackParamList = {
@@ -46,12 +47,29 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get the fine state from Redux
+  const fineState = useSelector((state: RootState) => state.fines);
+
+  // Handle form submit with backend integration
   const handleFormSubmit = async () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
+        // Prepare the data in the format expected by the API
+        const fineRequestData: FineRequest = {
+          driverName: formData.driverName,
+          licenseNumber: formData.licenseNumber,
+          vehicleNumber: formData.vehicleNumber,
+          category: formData.reason, // Map reason to category
+          fineAmount: parseFloat(formData.fine),
+          location: formData.location,
+          // Add any other required fields from your API
+          policeOfficerId: 1, // You may want to get this from user state or context
+        
+        };
+
         // Dispatch the action with form data
-        const resultAction = await dispatch(createFineAction(formData));
+        const resultAction = await dispatch(createFineAction(fineRequestData));
 
         if (createFineAction.fulfilled.match(resultAction)) {
           // Refresh the fines list
@@ -63,8 +81,8 @@ const HomeScreen: React.FC = () => {
               text: 'OK',
               onPress: () => {
                 setModalVisible(false);
-                setFormData({ date: '', driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' });
-                navigation.navigate('FineHistory', { licenseNumber: '' });
+                resetForm();
+                navigation.navigate('FineHistory', { licenseNumber: formData.licenseNumber });
               },
             },
           ]);
@@ -73,11 +91,25 @@ const HomeScreen: React.FC = () => {
           Alert.alert('Error', resultAction.error?.message || 'Failed to create fine. Please try again.');
         }
       } catch (error) {
+        console.error("Error creating fine:", error);
         Alert.alert('Error', 'Something went wrong. Please try again.');
       } finally {
         setIsLoading(false);
       }
     }
+  };
+
+  // Reset form helper
+  const resetForm = () => {
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      driverName: '',
+      licenseNumber: '',
+      vehicleNumber: '',
+      reason: '',
+      fine: '',
+      location: ''
+    });
   };
 
   const [errors, setErrors] = useState({ date: '', driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' });
@@ -197,13 +229,17 @@ const HomeScreen: React.FC = () => {
     }
 
     try {
-      // You could implement a search API call here or filter from existing data
-      // For now, navigate to the history screen
+      // Navigate to the history screen with the license number
       navigation.navigate('FineHistory', { licenseNumber: searchLicense });
     } catch (error) {
       Alert.alert('Error', 'Failed to search for license history');
     }
   };
+
+  // Load all fines when component mounts
+  useEffect(() => {
+    dispatch(getAllFinesAction());
+  }, [dispatch]);
 
   // Set current date automatically when component mounts or modal opens
   useEffect(() => {
@@ -297,6 +333,13 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* Loading indicator when API requests are in progress */}
+      {fineState.loading && (
+        <View style={styles.loadingIndicator}>
+          <Text>Loading...</Text>
+        </View>
+      )}
+
       {/* Modal */}
       <Modal visible={isModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -383,26 +426,26 @@ const HomeScreen: React.FC = () => {
 
             <Text style={styles.fineText}>Fine Amount: LKR {formData.fine || '0.00'}</Text>
 
-            
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[
                   styles.button,
                   styles.outlineButton,
-                  isLoading && styles.disabledButton
+                  (isLoading || fineState.loading) && styles.disabledButton
                 ]}
                 onPress={handleFormSubmit}
-                disabled={isLoading}
+                disabled={isLoading || fineState.loading}
               >
                 <Icon name="check-circle-outline" size={22} color="#3B82F6" />
                 <Text style={styles.outlineButtonText}>
-                  {isLoading ? 'Creating...' : 'Create Fine'}
+                  {(isLoading || fineState.loading) ? 'Creating...' : 'Create Fine'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.filledButton]}
                 onPress={() => setModalVisible(false)}
-                disabled={isLoading}
+                disabled={isLoading || fineState.loading}
               >
                 <Icon name="close-circle-outline" size={22} color="white" />
                 <Text style={styles.filledButtonText}>Discard Fine</Text>
@@ -516,6 +559,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     shadowOpacity: 0.1,
   },
+  loadingIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+  }
 });
 
 export default HomeScreen;
