@@ -6,9 +6,12 @@ import com.example.digital_fine_management_system.dto.fine.FineResponseDTO;
 import java.util.List;
 
 public interface FineService {
+
     FineResponseDTO createFine(FineRequestDTO fineRequestDTO);
 
-    List<FineResponseDTO> getAllFines();  // New method to get all fines
+    List<FineResponseDTO> getAllFines();
 
-    void deleteFine(Long fineId);  // New method to delete a fine by its fineId
+    void deleteFine(Long fineId);
+
+    FineResponseDTO updateFine(Long fineId, FineRequestDTO fineRequestDTO); // Add this method
 }
