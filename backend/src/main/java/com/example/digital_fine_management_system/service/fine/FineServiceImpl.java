@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,19 +25,17 @@ public class FineServiceImpl implements FineService {
         Fine fine = new Fine();
         BeanUtils.copyProperties(fineRequestDTO, fine);
 
-        // Set default fine status
-        fine.setStatus(Fine.FineStatus.PENDING);
+        if (fine.getStatus() == null) {
+            fine.setStatus(Fine.FineStatus.PENDING);
+        }
 
-        // Save fine and return response
-        return convertToResponseDTO(fineRepository.save(fine));
+        Fine savedFine = fineRepository.save(fine);
+        return convertToResponseDTO(savedFine);
     }
 
     @Override
     public List<FineResponseDTO> getAllFines() {
-        // Fetch all fines from the repository
         List<Fine> fines = fineRepository.findAll();
-
-        // Convert each Fine entity to FineResponseDTO
         return fines.stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
@@ -44,14 +43,29 @@ public class FineServiceImpl implements FineService {
 
     @Override
     public void deleteFine(Long fineId) {
-        // Delete the fine by its fineId
         fineRepository.deleteById(fineId);
     }
 
-    // Helper method to convert Fine entity to FineResponseDTO
+    // Implement the updateFine method
+    @Override
+    public FineResponseDTO updateFine(Long fineId, FineRequestDTO fineRequestDTO) {
+        Optional<Fine> existingFine = fineRepository.findById(fineId);
+        if (existingFine.isPresent()) {
+            Fine fine = existingFine.get();
+            BeanUtils.copyProperties(fineRequestDTO, fine);
+            fine.setFineID(fineId); // Ensure the ID remains the same
+
+            Fine updatedFine = fineRepository.save(fine);
+            return convertToResponseDTO(updatedFine);
+        } else {
+            throw new RuntimeException("Fine not found with id: " + fineId); // Handle appropriately
+        }
+    }
+
     private FineResponseDTO convertToResponseDTO(Fine fine) {
         FineResponseDTO responseDTO = new FineResponseDTO();
         BeanUtils.copyProperties(fine, responseDTO);
+        responseDTO.setStatus(fine.getStatus() != null ? fine.getStatus().name() : null);
         return responseDTO;
     }
 }
