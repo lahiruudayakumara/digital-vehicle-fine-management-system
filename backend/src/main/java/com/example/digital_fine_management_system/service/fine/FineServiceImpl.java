@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FineServiceImpl implements FineService {
-
     private final FineRepository fineRepository;
 
     @Transactional
@@ -24,11 +23,9 @@ public class FineServiceImpl implements FineService {
     public FineResponseDTO createFine(FineRequestDTO fineRequestDTO) {
         Fine fine = new Fine();
         BeanUtils.copyProperties(fineRequestDTO, fine);
-
         if (fine.getStatus() == null) {
             fine.setStatus(Fine.FineStatus.PENDING);
         }
-
         Fine savedFine = fineRepository.save(fine);
         return convertToResponseDTO(savedFine);
     }
@@ -46,15 +43,14 @@ public class FineServiceImpl implements FineService {
         fineRepository.deleteById(fineId);
     }
 
-    // Implement the updateFine method
     @Override
+    @Transactional
     public FineResponseDTO updateFine(Long fineId, FineRequestDTO fineRequestDTO) {
         Optional<Fine> existingFine = fineRepository.findById(fineId);
         if (existingFine.isPresent()) {
             Fine fine = existingFine.get();
             BeanUtils.copyProperties(fineRequestDTO, fine);
             fine.setFineID(fineId); // Ensure the ID remains the same
-
             Fine updatedFine = fineRepository.save(fine);
             return convertToResponseDTO(updatedFine);
         } else {
@@ -65,6 +61,10 @@ public class FineServiceImpl implements FineService {
     private FineResponseDTO convertToResponseDTO(Fine fine) {
         FineResponseDTO responseDTO = new FineResponseDTO();
         BeanUtils.copyProperties(fine, responseDTO);
+
+        // Explicitly set the ID field to handle the case difference
+        responseDTO.setFineId(fine.getFineID());
+
         responseDTO.setStatus(fine.getStatus() != null ? fine.getStatus().name() : null);
         return responseDTO;
     }
