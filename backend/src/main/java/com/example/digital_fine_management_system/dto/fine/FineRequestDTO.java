@@ -7,6 +7,8 @@ import lombok.Data;
 @Data
 public class FineRequestDTO {
 
+
+
     @NotBlank(message = "Driver name is required")
     private String driverName;
 
