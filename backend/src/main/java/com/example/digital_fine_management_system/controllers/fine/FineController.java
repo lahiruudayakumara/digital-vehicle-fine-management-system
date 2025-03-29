@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/fines")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Allows cross-origin requests (adjust as needed)
+@CrossOrigin(origins = "*")
 public class FineController {
 
     private final FineService fineService;
@@ -25,17 +25,24 @@ public class FineController {
         return ResponseEntity.status(HttpStatus.CREATED).body(fineResponse);
     }
 
-    // New endpoint to get all fines
     @GetMapping
     public ResponseEntity<List<FineResponseDTO>> getAllFines() {
         List<FineResponseDTO> fines = fineService.getAllFines();
         return ResponseEntity.ok(fines);
     }
 
-    // New endpoint to delete a fine by its fineId
     @DeleteMapping("/{fineId}")
     public ResponseEntity<Void> deleteFine(@PathVariable Long fineId) {
         fineService.deleteFine(fineId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    // Add the updateFine endpoint
+    @PutMapping("/{fineId}")
+    public ResponseEntity<FineResponseDTO> updateFine(
+            @PathVariable Long fineId,
+            @Valid @RequestBody FineRequestDTO fineRequestDTO) {
+        FineResponseDTO fineResponse = fineService.updateFine(fineId, fineRequestDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(fineResponse);
     }
 }
