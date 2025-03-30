@@ -6,6 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppDispatch } from '@/stores/store';
 import { Fine, FineRequest } from '@/types/fine-types';
 import { RootState } from '@/stores/reducers';
+import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import XLSX from 'xlsx';
 
 const FineHistoryScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -14,6 +18,7 @@ const FineHistoryScreen = () => {
   const [filterType, setFilterType] = useState('name');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [selectedFine, setSelectedFine] = useState<Fine | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
   const [updatedFineData, setUpdatedFineData] = useState<FineRequest>({
     driverName: '',
     licenseNumber: '',
@@ -23,10 +28,83 @@ const FineHistoryScreen = () => {
     location: '',
     policeOfficerId: 0,
   });
+  const [validationErrors, setValidationErrors] = useState({
+    driverName: '',
+    licenseNumber: '',
+    vehicleNumber: '',
+  });
 
   useEffect(() => {
     dispatch(getAllFinesAction());
   }, [dispatch]);
+
+  // Function to generate and export Excel report
+  const generateExcelReport = async () => {
+    try {
+      setExportLoading(true);
+
+      // Create worksheet with formatted data
+      const worksheet = XLSX.utils.json_to_sheet(
+        fines.map(fine => ({
+          'Driver Name': fine.driverName,
+          'License Number': fine.licenseNumber,
+          'Vehicle Number': fine.vehicleNumber,
+          'Fine Amount': `Rs ${fine.fineAmount}`,
+          'Category': fine.category || 'N/A',
+          'Location': fine.location || 'N/A',
+          'Status': fine.status,
+          'Date': fine.createdAt
+        }))
+      );
+
+      // Set column widths for better readability
+      const columnWidths = [
+        { wch: 20 }, // Driver Name
+        { wch: 15 }, // License Number
+        { wch: 15 }, // Vehicle Number
+        { wch: 12 }, // Fine Amount
+        { wch: 15 }, // Category
+        { wch: 20 }, // Location
+        { wch: 12 }, // Status
+        { wch: 20 }  // Date
+      ];
+
+      worksheet['!cols'] = columnWidths;
+
+      // Create workbook and add the worksheet
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Fine History');
+
+      // Generate Excel file
+      const wbout = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
+
+      // Get current date for filename
+      const date = new Date();
+      const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+      const fileName = `FineHistory_${dateString}.xlsx`;
+
+      // Create file path
+      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Write the file
+      await FileSystem.writeAsStringAsync(filePath, wbout, {
+        encoding: FileSystem.EncodingType.Base64
+      });
+
+      // Share the file
+      await Sharing.shareAsync(filePath, {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: 'Save Fine History Report',
+        UTI: 'com.microsoft.excel.xlsx'
+      });
+
+      setExportLoading(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Export Failed', 'Failed to generate Excel report');
+      setExportLoading(false);
+    }
+  };
 
   const handleDeleteFine = (fineId: number) => {
     console.log("Deleting Fine ID:", fineId);
@@ -55,33 +133,50 @@ const FineHistoryScreen = () => {
       location: fine.location || '',
       policeOfficerId: fine.policeOfficerId || 0
     });
+    setValidationErrors({
+      driverName: '',
+      licenseNumber: '',
+      vehicleNumber: '',
+    });
     setUpdateModalVisible(true);
   };
 
-  const handleCompleteFine = (fine: Fine) => {
-    const completedFineData = {
-      ...fine,
-      status: 'Completed'
+  const validateInputs = () => {
+    let isValid = true;
+    const errors = {
+      driverName: '',
+      licenseNumber: '',
+      vehicleNumber: '',
     };
 
-    const updateData: FineRequest = {
-      driverName: completedFineData.driverName,
-      licenseNumber: completedFineData.licenseNumber,
-      vehicleNumber: completedFineData.vehicleNumber,
-      fineAmount: completedFineData.fineAmount,
-      category: completedFineData.category || '',
-      location: completedFineData.location || '',
-      policeOfficerId: completedFineData.policeOfficerId || 0,
-    };
+    // Validate driver name (only letters)
+    if (!/^[a-zA-Z\s]+$/.test(updatedFineData.driverName)) {
+      errors.driverName = 'Driver name must contain only letters';
+      isValid = false;
+    }
 
-    dispatch(updateFineAction({
-      fineId: fine.fineId,
-      fineData: updateData
-    }));
+    // Validate license number (exactly 10 numbers)
+    if (!/^\d{10}$/.test(updatedFineData.licenseNumber)) {
+      errors.licenseNumber = 'License number must be exactly 10 digits';
+      isValid = false;
+    }
+
+    // Validate vehicle number (only numbers and capital letters)
+    if (!/^[A-Z0-9]+$/.test(updatedFineData.vehicleNumber)) {
+      errors.vehicleNumber = 'Vehicle number must contain only numbers and capital letters';
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
   };
 
   const submitUpdateFine = async () => {
     if (!selectedFine) return;
+
+    if (!validateInputs()) {
+      return;
+    }
 
     try {
       const allowedUpdateData = {
@@ -127,6 +222,24 @@ const FineHistoryScreen = () => {
     return false;
   });
 
+  const validateDriverName = (text: string) => {
+    // Only allow letters
+    const letterOnly = text.replace(/[^a-zA-Z\s]/g, '');
+    setUpdatedFineData({ ...updatedFineData, driverName: letterOnly });
+  };
+
+  const validateLicenseNumber = (text: string) => {
+    // Only allow numbers and limit to 10 digits
+    const numbersOnly = text.replace(/[^0-9]/g, '').slice(0, 10);
+    setUpdatedFineData({ ...updatedFineData, licenseNumber: numbersOnly });
+  };
+
+  const validateVehicleNumber = (text: string) => {
+    // Only allow capital letters and numbers
+    const validChars = text.replace(/[^A-Z0-9]/g, '');
+    setUpdatedFineData({ ...updatedFineData, vehicleNumber: validChars });
+  };
+
   const renderUpdateModal = () => {
     return (
       <Modal
@@ -143,25 +256,36 @@ const FineHistoryScreen = () => {
             <TextInput
               style={styles.input}
               value={updatedFineData.driverName}
-              onChangeText={(text) => setUpdatedFineData({ ...updatedFineData, driverName: text })}
-              placeholder="Enter driver name"
+              onChangeText={validateDriverName}
+              placeholder="Enter driver name (letters only)"
             />
+            {validationErrors.driverName ? (
+              <Text style={styles.errorText}>{validationErrors.driverName}</Text>
+            ) : null}
 
             <Text style={styles.inputLabel}>License Number</Text>
             <TextInput
               style={styles.input}
               value={updatedFineData.licenseNumber}
-              onChangeText={(text) => setUpdatedFineData({ ...updatedFineData, licenseNumber: text })}
-              placeholder="Enter license number"
+              onChangeText={validateLicenseNumber}
+              placeholder="Enter license number (10 digits)"
+              keyboardType="numeric"
             />
+            {validationErrors.licenseNumber ? (
+              <Text style={styles.errorText}>{validationErrors.licenseNumber}</Text>
+            ) : null}
 
             <Text style={styles.inputLabel}>Vehicle Number</Text>
             <TextInput
               style={styles.input}
               value={updatedFineData.vehicleNumber}
-              onChangeText={(text) => setUpdatedFineData({ ...updatedFineData, vehicleNumber: text })}
-              placeholder="Enter vehicle number"
+              onChangeText={validateVehicleNumber}
+              placeholder="Enter vehicle number (numbers and capital letters)"
+              autoCapitalize="characters"
             />
+            {validationErrors.vehicleNumber ? (
+              <Text style={styles.errorText}>{validationErrors.vehicleNumber}</Text>
+            ) : null}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -187,18 +311,29 @@ const FineHistoryScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Fine History</Text>
-        <TouchableOpacity style={styles.exportButton}>
-          <Text style={styles.exportText}>📄 Export Report</Text>
+        <TouchableOpacity
+          style={styles.exportButton}
+          onPress={generateExcelReport}
+          disabled={exportLoading || loading || fines.length === 0}
+        >
+          {exportLoading ? (
+            <ActivityIndicator size="small" color="#FFF" />
+          ) : (
+            <Text style={styles.exportText}>📄 Export Report</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchSection}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={`Search by ${filterType}...`}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={styles.searchInputContainer}>
+          <Ionicons name="search-outline" size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={`Search by ${filterType}...`}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
         <View style={styles.filterButtons}>
           <TouchableOpacity
             style={[styles.filterButton, filterType === 'name' && styles.activeFilterButton]}
@@ -223,14 +358,17 @@ const FineHistoryScreen = () => {
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
+          <FontAwesome5 name="hourglass-half" size={24} color="#F59E0B" style={styles.statIcon} />
           <Text style={styles.statNumber}>{pendingCount}</Text>
           <Text style={styles.statLabel}>Pending</Text>
         </View>
         <View style={styles.statBox}>
+          <FontAwesome5 name="check-circle" size={24} color="#10B981" style={styles.statIcon} />
           <Text style={styles.statNumber}>{completedCount}</Text>
           <Text style={styles.statLabel}>Completed</Text>
         </View>
         <View style={styles.statBox}>
+          <Ionicons name="list" size={24} color="#3B82F6" style={styles.statIcon} />
           <Text style={styles.statNumber}>{totalCount}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
@@ -252,56 +390,58 @@ const FineHistoryScreen = () => {
             filteredFines.map((fine: Fine) => (
               <View key={fine.fineId} style={styles.fineCard}>
                 <View style={styles.fineHeader}>
-                  <View>
-                    <Text style={styles.driverName}>{fine.driverName}</Text>
-                    <Text style={styles.fineDate}>{fine.createdAt}</Text>
-                  </View>
-                  <Text style={[
+                  <Text style={styles.driverName}>{fine.driverName}</Text>
+                  <View style={[
                     styles.statusTag,
                     fine.status === 'COMPLETED' ? styles.completedTag : styles.pendingTag
                   ]}>
-                    {fine.status}
-                  </Text>
+                    <Text style={styles.statusText}>{fine.status}</Text>
+                  </View>
                 </View>
 
                 <View style={styles.fineDetails}>
                   <View style={styles.detailRow}>
+                    <MaterialIcons name="person" size={20} color="#6B7280" />
                     <Text style={styles.detailLabel}>License:</Text>
                     <Text style={styles.detailValue}>{fine.licenseNumber}</Text>
                   </View>
                   <View style={styles.detailRow}>
+                    <MaterialIcons name="directions-car" size={20} color="#6B7280" />
                     <Text style={styles.detailLabel}>Vehicle:</Text>
                     <Text style={styles.detailValue}>{fine.vehicleNumber}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Amount:</Text>
-                    <Text style={styles.detailValue}>Rs {fine.fineAmount}</Text>
+                    <MaterialIcons name="location-on" size={20} color="#6B7280" />
+                    <Text style={styles.detailLabel}>Location:</Text>
+                    <Text style={styles.detailValue}>{fine.location || 'Not specified'}</Text>
                   </View>
                   <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Location:</Text>
-                    <Text style={styles.detailValue}>{fine.location}</Text>
+                    <MaterialIcons name="event" size={20} color="#6B7280" />
+                    <Text style={styles.detailLabel}>Date:</Text>
+                    <Text style={styles.detailValue}>{fine.createdAt}</Text>
                   </View>
-                  {fine.category && (
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Category:</Text>
-                      <Text style={styles.detailValue}>{fine.category}</Text>
-                    </View>
-                  )}
+                  <View style={styles.detailRow}>
+                    <MaterialIcons name="attach-money" size={20} color="#6B7280" />
+                    <Text style={styles.detailLabel}>Fine:</Text>
+                    <Text style={styles.detailValue}>Rs {fine.fineAmount}</Text>
+                  </View>
                 </View>
 
                 <View style={styles.actionButtons}>
-                  
                   <TouchableOpacity
                     style={styles.updateButton}
                     onPress={() => handleUpdateFine(fine)}
                   >
-                    <Text style={styles.actionButtonText}>✎ Update</Text>
+                    <MaterialIcons name="edit" size={18} color="#FFF" />
+                    <Text style={styles.actionButtonText}>Update</Text>
                   </TouchableOpacity>
+
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={() => handleDeleteFine(fine.fineId)}
                   >
-                    <Text style={styles.actionButtonText}>✕ Delete</Text>
+                    <MaterialIcons name="delete" size={18} color="#FFF" />
+                    <Text style={styles.actionButtonText}>Delete</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -309,6 +449,21 @@ const FineHistoryScreen = () => {
           )}
         </ScrollView>
       )}
+
+      <View style={styles.tabBar}>
+        <TouchableOpacity style={styles.tabItem}>
+          <MaterialIcons name="home" size={24} color="#9CA3AF" />
+          <Text style={styles.tabLabel}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItemActive}>
+          <MaterialIcons name="history" size={24} color="#505DD1" />
+          <Text style={styles.tabLabelActive}>Fine History</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem}>
+          <MaterialIcons name="person" size={24} color="#9CA3AF" />
+          <Text style={styles.tabLabel}>Profile</Text>
+        </TouchableOpacity>
+      </View>
 
       {renderUpdateModal()}
     </SafeAreaView>
@@ -329,55 +484,65 @@ const styles = StyleSheet.create({
     paddingVertical: 8
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#1A2138'
+    color: '#172B4D'
   },
   exportButton: {
-    backgroundColor: '#505DD1',
+    backgroundColor: '#3B82F6',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 8,
-    elevation: 2
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   exportText: {
     color: '#FFF',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: 15
   },
   searchSection: {
     marginBottom: 16
   },
-  searchInput: {
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E1E5EB',
-    padding: 12,
     borderRadius: 8,
     backgroundColor: '#FFF',
-    fontSize: 16,
-    marginBottom: 8
+    paddingHorizontal: 12
+  },
+  searchIcon: {
+    marginRight: 8
+  },
+  searchInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16
   },
   filterButtons: {
     flexDirection: 'row',
-    marginTop: 8
+    marginTop: 12
   },
   filterButton: {
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginRight: 8,
     borderRadius: 20,
-    backgroundColor: '#E1E5EB',
-    borderWidth: 1,
-    borderColor: 'transparent'
+    backgroundColor: '#EDF2F7'
   },
   activeFilterButton: {
     backgroundColor: '#EEF0FF',
-    borderColor: '#505DD1'
+    borderWidth: 1,
+    borderColor: '#3B82F6'
   },
   filterText: {
-    color: '#6B7280'
+    color: '#6B7280',
+    fontWeight: '500'
   },
   activeFilterText: {
-    color: '#505DD1',
+    color: '#3B82F6',
     fontWeight: 'bold'
   },
   statsContainer: {
@@ -388,16 +553,19 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     backgroundColor: '#FFF',
-    padding: 12,
-    borderRadius: 8,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginHorizontal: 4,
-    elevation: 1,
+    elevation: 2,
     borderWidth: 1,
     borderColor: '#E1E5EB'
   },
+  statIcon: {
+    marginBottom: 8
+  },
   statNumber: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#1A2138'
   },
@@ -441,18 +609,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E1E5EB',
-    elevation: 2
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: 'blue',
   },
   fineHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12
+    alignItems: 'center',
+    marginBottom: 16
   },
   driverName: {
     fontWeight: 'bold',
-    fontSize: 18,
-    color: '#1A2138'
+    fontSize: 20,
+    color: '#172B4D'
   },
   fineDate: {
     fontSize: 14,
@@ -460,12 +630,14 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   statusTag: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16
+  },
+  statusText: {
     color: '#FFF',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    fontSize: 12,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: 14
   },
   pendingTag: {
     backgroundColor: '#F59E0B'
@@ -474,58 +646,91 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981'
   },
   fineDetails: {
-    marginBottom: 12,
-    backgroundColor: '#F9FAFB',
-    padding: 12,
-    borderRadius: 8
+    marginBottom: 16
   },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: 8
+    alignItems: 'center',
+    marginBottom: 12
   },
   detailLabel: {
     width: 80,
-    fontSize: 14,
+    fontSize: 16,
     color: '#6B7280',
-    fontWeight: 'bold'
+    fontWeight: '500',
+    marginLeft: 8
   },
   detailValue: {
     flex: 1,
-    fontSize: 14,
-    color: '#1A2138'
+    fontSize: 16,
+    color: '#1A2138',
+    fontWeight: '500'
   },
   actionButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     marginTop: 8
   },
-  completeButton: {
-    backgroundColor: '#10B981',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginLeft: 8
-  },
   updateButton: {
-    backgroundColor: '#505DD1',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginLeft: 8
+    backgroundColor: '#3B82F6',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40%',
+    marginRight: 16
   },
   deleteButton: {
     backgroundColor: '#EF4444',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginLeft: 8
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40%'
   },
   actionButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
+    marginLeft: 4
   },
-
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: '#E1E5EB',
+    backgroundColor: '#FFF',
+    paddingVertical: 10,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0
+  },
+  tabItem: {
+    alignItems: 'center',
+    paddingVertical: 8
+  },
+  tabItemActive: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 3,
+    borderBottomColor: '#505DD1'
+  },
+  tabLabel: {
+    color: '#9CA3AF',
+    marginTop: 4,
+    fontSize: 12
+  },
+  tabLabelActive: {
+    color: '#505DD1',
+    fontWeight: 'bold',
+    marginTop: 4,
+    fontSize: 12
+  },
   // Modal styles
   modalOverlay: {
     flex: 1,
@@ -545,7 +750,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#1A2138'
+    color: '#172B4D'
   },
   inputLabel: {
     fontSize: 16,
@@ -558,9 +763,14 @@ const styles = StyleSheet.create({
     borderColor: '#E1E5EB',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 8,
     fontSize: 16,
     backgroundColor: '#F9FAFB'
+  },
+  errorText: {
+    color: '#EF4444',
+    marginBottom: 12,
+    fontSize: 14
   },
   modalButtons: {
     flexDirection: 'row',
@@ -575,7 +785,7 @@ const styles = StyleSheet.create({
     elevation: 2
   },
   saveButton: {
-    backgroundColor: '#505DD1'
+    backgroundColor: '#3B82F6'
   },
   cancelButton: {
     backgroundColor: '#9CA3AF'
