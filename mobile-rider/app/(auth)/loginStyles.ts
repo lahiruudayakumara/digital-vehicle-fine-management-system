@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-// Using the same color palette as your main styles
+// Define a color palette for consistent styling across the app
 export const COLORS = {
-  primary: '#1E3A8A', // Deep Blue
-  secondary: '#FACC15', // Bright Yellow
-  accent: '#DC2626', // Traffic Red
-  background: '#F3F4F6', // Light Gray
-  white: '#FFFFFF',
-  success: '#16A34A', // Green
-  darkMode: '#111827', // Dark Gray
+  primary: '#1E3A8A', // Deep Blue for primary buttons and highlights
+  secondary: '#FACC15', // Bright Yellow for secondary elements
+  accent: '#DC2626', // Traffic Red for error messages or warnings
+  background: '#F3F4F6', // Light Gray for background
+  white: '#FFFFFF', // White for text or backgrounds
+  success: '#16A34A', // Green for success messages
+  darkMode: '#111827', // Dark Gray for dark mode backgrounds
   text: '#1F2937', // Dark text for light mode
   textLight: '#F9FAFB', // Light text for dark mode
 };
@@ -16,83 +16,81 @@ export const COLORS = {
 const loginStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 24,
-    justifyContent: 'center',
+    backgroundColor: COLORS.background, // Set the background color for the login screen
+    padding: 24, // Add padding around the content
+    justifyContent: 'center', // Center the content vertically
   },
-  // Add these to your existing styles
-inputError: {
-  borderColor: 'red',
-},
-
-buttonDisabled: {
-  backgroundColor: '#cccccc',
-},
-helpContainer: {
-  marginTop: 15,
-  alignItems: 'center',
-  gap: 10,
-},
-demoInfoContainer: {
-  marginTop: 30,
-  padding: 15,
-  backgroundColor: '#f0f0f0',
-  borderRadius: 5,
-},
-demoInfoText: {
-  fontSize: 12,
-  color: '#666',
-},
+  inputError: {
+    borderColor: 'red', // Highlight input fields with errors in red
+  },
+  buttonDisabled: {
+    backgroundColor: '#cccccc', // Gray out disabled buttons
+  },
+  helpContainer: {
+    marginTop: 15, // Add spacing above the help section
+    alignItems: 'center', // Center align the help content
+    gap: 10, // Add spacing between child elements
+  },
+  demoInfoContainer: {
+    marginTop: 30, // Add spacing above the demo info section
+    padding: 15, // Add padding inside the container
+    backgroundColor: '#f0f0f0', // Light gray background for the demo info
+    borderRadius: 5, // Round the corners of the container
+  },
+  demoInfoText: {
+    fontSize: 12, // Small font size for demo info text
+    color: '#666', // Gray color for the text
+  },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 32,
-    textAlign: 'center',
+    fontSize: 28, // Large font size for the title
+    fontWeight: 'bold', // Make the title bold
+    color: COLORS.text, // Use the primary text color
+    marginBottom: 32, // Add spacing below the title
+    textAlign: 'center', // Center align the title
   },
   input: {
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: COLORS.white, // White background for input fields
+    borderRadius: 8, // Round the corners of the input fields
+    padding: 16, // Add padding inside the input fields
+    marginBottom: 16, // Add spacing below each input field
+    fontSize: 16, // Set font size for input text
+    color: COLORS.text, // Use the primary text color
+    shadowColor: '#000', // Add shadow for iOS
+    shadowOpacity: 0.05, // Set shadow opacity
+    shadowRadius: 3, // Set shadow radius
+    elevation: 2, // Add elevation for Android
   },
   button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
+    backgroundColor: COLORS.primary, // Use the primary color for buttons
+    borderRadius: 8, // Round the corners of the button
+    padding: 16, // Add padding inside the button
+    alignItems: 'center', // Center align the button text
+    marginTop: 8, // Add spacing above the button
+    marginBottom: 24, // Add spacing below the button
+    shadowColor: '#000', // Add shadow for iOS
+    shadowOpacity: 0.1, // Set shadow opacity
+    shadowRadius: 5, // Set shadow radius
+    elevation: 5, // Add elevation for Android
   },
   buttonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
+    color: COLORS.white, // Use white color for button text
+    fontSize: 16, // Set font size for button text
+    fontWeight: '600', // Make the button text semi-bold
   },
   link: {
-    alignSelf: 'center',
-    padding: 8,
+    alignSelf: 'center', // Center align the link
+    padding: 8, // Add padding around the link
   },
   linkText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '500',
+    color: COLORS.primary, // Use the primary color for links
+    fontSize: 14, // Set font size for link text
+    fontWeight: '500', // Make the link text medium weight
   },
   errorText: {
-    color: COLORS.accent,
-    marginBottom: 16,
-    fontSize: 14,
-  }
+    color: COLORS.accent, // Use the accent color for error messages
+    marginBottom: 16, // Add spacing below the error text
+    fontSize: 14, // Set font size for error text
+  },
 });
 
 export default loginStyles;
