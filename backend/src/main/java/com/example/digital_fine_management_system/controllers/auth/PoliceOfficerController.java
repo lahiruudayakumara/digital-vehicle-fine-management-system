@@ -25,6 +25,12 @@ public class PoliceOfficerController {
         return policeOfficerService.getAllPoliceOfficers();
     }
 
+    // New endpoint to fetch a single officer by badgeID
+    @GetMapping("/{badgeID}")
+    public PoliceOfficerResponseDTO getPoliceOfficerById(@PathVariable String badgeID) {
+        return policeOfficerService.getPoliceOfficerById(badgeID);
+    }
+
     @PatchMapping("/{badgeID}")
     public PoliceOfficerResponseDTO updatePoliceOfficer(
             @PathVariable String badgeID,
@@ -45,6 +51,4 @@ public class PoliceOfficerController {
         policeOfficerService.deletePoliceOfficer(badgeID);
         return ResponseEntity.ok("Police Officer and associated User with Badge ID " + badgeID + " have been deleted.");
     }
-
-
 }

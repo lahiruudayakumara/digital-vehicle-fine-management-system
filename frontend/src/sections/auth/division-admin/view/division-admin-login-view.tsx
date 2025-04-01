@@ -34,7 +34,6 @@ const AdminLoginView = () => {
   const handleSignIn = async () => {
     try {
       await dispatch(login(credentials)).unwrap();
-      toast.success("Login successful!");
     } catch (err: any) {
       Logger.error(err.message);
       toast.error("Login failed. Please check your credentials.");

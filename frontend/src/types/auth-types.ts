@@ -10,18 +10,28 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
+    success: boolean;      // Add the success property
+    message: string;       // Add the message property
     token: string;
     refresh_token: string;
-    user: {
-        id: string;
-        username: string;
-        email: string;
-    };
+    username: string;
+    role: string;
+    user:any;
+              
 }
 
 export interface AuthState {
-    user: AuthResponse["user"] | null;
+    username: string | null;
+    role: string | null;
     token: string | null;
     loading: boolean;
     error: string | null;
-  }
+}
+
+export interface PoliceOfficerRegisterRequest extends RegisterRequest {
+    badgeID: string;
+    fullName: string;
+    address: string;
+    telephone: string;
+    patrolLocations: string; // Must be string[]
+}

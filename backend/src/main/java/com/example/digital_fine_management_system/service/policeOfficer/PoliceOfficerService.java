@@ -12,5 +12,7 @@ public interface PoliceOfficerService {
     void replacePoliceOfficer(String badgeID, PoliceOfficerUpdateDTO updateDTO);
 
     void deletePoliceOfficer(String badgeID);
+
+    PoliceOfficerResponseDTO getPoliceOfficerById(String badgeID);
 }
 
