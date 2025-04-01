@@ -27,6 +27,5 @@ public class RegisterRequest {
     @NotBlank(message = "Role is required")
     private String role;
 
-    private String badgeId; // Only for Police Officers
-    private String station; // Only for Police Officers
+
 }

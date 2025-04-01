@@ -1,0 +1,1 @@
+export { default as UpdateOfficerView } from '@/sections/division-admin/update/view/division-admin-update-officer';

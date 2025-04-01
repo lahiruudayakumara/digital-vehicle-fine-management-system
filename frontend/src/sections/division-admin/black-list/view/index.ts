@@ -1,0 +1,1 @@
+export { default as DivisionAdminBlackListView } from '@/sections/division-admin/black-list/view/black-list-view';

@@ -1,14 +1,10 @@
 package com.example.digital_fine_management_system.model.user;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -20,31 +16,24 @@ import java.time.LocalDateTime;
 @PrimaryKeyJoinColumn(name = "user_id")
 public class PoliceOfficer extends User {
 
-    @NotNull(message = "Badge number cannot be null")
-    @Size(min = 1, max = 20, message = "Badge number must be between 1 and 20 characters")
-    @Column(name = "police_id", unique = true, nullable = false)
-    private String policeId;
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "id", referencedColumnName = "id") // Ensuring User ID is used
+    private User user;
 
-    @Size(max = 100, message = "Station name cannot be longer than 100 characters")
-    @Column(length = 100)
-    private String station;
 
-    @CreationTimestamp // Automatically set when created
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(unique = true, nullable = false)
+    @NotBlank(message = "Badge ID cannot be blank")
+    private String badgeID;
 
-    @UpdateTimestamp // Automatically updated on change
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    @NotBlank(message = "Address cannot be blank")
+    private String address;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
+    @Column(nullable = false)
+    @NotBlank(message = "Telephone cannot be blank")
+    private String telephone;
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @Column(nullable = false)
+    @NotBlank(message = "Patrol locations cannot be blank")
+    private String patrolLocations; // Storing as a comma-separated string
 }

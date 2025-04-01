@@ -1,11 +1,14 @@
 import DashboardLayout from "@layouts/dashboard";
 import { Outlet } from "react-router-dom";
+import ProtectedRoute from "../protected-route";
 
 const AdminDashboard = () => {
   return (
-    <DashboardLayout>
-      <Outlet />
-    </DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <Outlet />
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 };
 

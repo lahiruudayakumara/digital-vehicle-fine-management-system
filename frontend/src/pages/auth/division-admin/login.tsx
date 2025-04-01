@@ -1,4 +1,4 @@
-import { DivisionAdminLoginView } from "@sections/auth/division-admin/view";
+import { DivisionAdminLoginView } from "@/sections/auth/division-admin/view";
 import { Helmet } from "react-helmet";
 
 const LoginPage = () => {
