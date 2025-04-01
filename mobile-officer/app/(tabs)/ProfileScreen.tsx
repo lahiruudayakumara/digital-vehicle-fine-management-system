@@ -1,11 +1,25 @@
-import React from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+
+import { AppDispatch } from "@/stores/store";
+import Button from "@/components/common/Button";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import React from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { logout } from "@/stores/slices/auth/auth-actions";
+import { useDispatch } from "react-redux";
+import { useRouter } from "expo-router";
+
 // Using react-native-vector-icons
 
 const ProfileScreen: React.FC = () => {
   const patrolAreas = ["Gampaha", "Kadawatha", "Ganemulla", "Ragama"];
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await dispatch(logout());
+    router.replace("/(auth)/login");
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -22,6 +36,8 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.name}>Duvindu Nimsara</Text>
           <Text style={styles.role}>Traffic officer</Text>
         </View>
+
+        <Button title="Logout" onPress={handleLogout} />
 
         {/* Info Fields */}
         <View style={styles.infoContainer}>
