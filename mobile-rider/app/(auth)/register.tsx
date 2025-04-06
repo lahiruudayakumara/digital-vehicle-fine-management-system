@@ -1,55 +1,198 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { styles } from './registerStyles';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from './loginStyles';
+import styles from './registerStyles';
+
+interface FormErrors {
+  fullName?: string;
+  email?: string;
+  username?: string;
+  password?: string;
+  confirmPassword?: string;
+}
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState(false);
+  
   const router = useRouter();
   
-  const handleRegister = () => {
-    // Implement registration logic here
-    // If successful, navigate to the tabs or login
-    router.replace('/(auth)/login');
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    
+    // Full name validation
+    if (!fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    }
+    
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email is invalid";
+    }
+    
+    // Username validation
+    if (!username) {
+      newErrors.username = "Username is required";
+    } else if (username.length < 4) {
+      newErrors.username = "Username must be at least 4 characters";
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+    
+    // Confirm password validation
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (confirmPassword !== password) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  const handleRegister = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Replace with your actual API call
+      // For example:
+      // await registerUser({
+      //   fullName,
+      //   email,
+      //   username,
+      //   password,
+      //   role: "RIDER"
+      // });
+      
+      // Simulating API call with timeout
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      Alert.alert(
+        "Registration Successful",
+        "Your account has been created successfully. Please login.",
+        [
+          { text: "OK", onPress: () => router.replace("/(auth)/login") }
+        ]
+      );
+    } catch (error: any) {
+      Alert.alert(
+        "Registration Failed",
+        error.message || "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        value={name}
-        onChangeText={setName}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
-      
-      <Link href="/(auth)/login" style={styles.link}>
-        <Text>Already have an account? Log In</Text>
-      </Link>
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Create Account</Text>
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Full Name"
+          value={fullName}
+          onChangeText={(text) => {
+            setFullName(text);
+            if (errors.fullName) {
+              setErrors({ ...errors, fullName: undefined });
+            }
+          }}
+        />
+        {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (errors.email) {
+              setErrors({ ...errors, email: undefined });
+            }
+          }}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          value={username}
+          onChangeText={(text) => {
+            setUsername(text);
+            if (errors.username) {
+              setErrors({ ...errors, username: undefined });
+            }
+          }}
+          autoCapitalize="none"
+        />
+        {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (errors.password) {
+              setErrors({ ...errors, password: undefined });
+            }
+          }}
+          secureTextEntry
+        />
+        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            if (errors.confirmPassword) {
+              setErrors({ ...errors, confirmPassword: undefined });
+            }
+          }}
+          secureTextEntry
+        />
+        {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+        
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Creating Account..." : "Register"}
+          </Text>
+        </TouchableOpacity>
+        
+        <Link href="/(auth)/login" asChild>
+          <TouchableOpacity style={styles.link}>
+            <Text style={styles.linkText}>Already have an account? Log In</Text>
+          </TouchableOpacity>
+        </Link>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
