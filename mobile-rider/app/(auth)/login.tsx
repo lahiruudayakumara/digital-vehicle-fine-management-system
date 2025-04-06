@@ -25,40 +25,65 @@ interface FormErrors {
 
 export default function LoginScreen() {
   const [credentials, setCredentials] = useState<LoginRequest>({
-    username: "johnDoe",
-    password: "StrongPass123",
+    username: "",
+    password: "",
   });
 
   const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const token = useSelector((state: RootState) => state.auth.token);
   const role = useSelector((state: RootState) => state.auth.role);
 
+  console.log("LoginScreen rendered with token:", token);
+  console.log("Current role:", role);
+  console.log("Form submission status:", isSubmitted);
+
   const handleLogin = async () => {
+    console.log("Login button pressed");
+    console.log("Credentials:", { username: credentials.username, passwordLength: credentials.password?.length || 0 });
+    
     if (!credentials.username || !credentials.password) {
+      console.log("Validation failed: missing username or password");
       Alert.alert("Error", "Please enter both username and password.");
       return;
     }
+    
     try {
+      console.log("Starting login request");
       setLoading(true);
       await dispatch(login(credentials)).unwrap();
+      console.log("Login request successful");
+      // Only set isSubmitted to true if login was successful
+      setIsSubmitted(true);
+      console.log("isSubmitted set to true");
     } catch (err: any) {
+      console.error("Login request failed:", err);
+      // Make sure isSubmitted stays false if login failed
+      setIsSubmitted(false);
       Alert.alert(
         "Login Failed",
-        "Invalid credentials or something went wrong."
+        "Invalid username or password."
       );
     } finally {
       setLoading(false);
+      console.log("Login process completed, loading set to false");
     }
   };
 
   useEffect(() => {
-    if (token) {
-      if (role === "RIDER") {
+    console.log("useEffect triggered - token:", token, "isSubmitted:", isSubmitted);
+    
+    // Only navigate when we have a token AND the user has explicitly submitted the form
+    if (token && isSubmitted) {
+      console.log("Token and isSubmitted are both true, checking role");
+      if (role && role.toUpperCase() === "RIDER") {
+        console.log("Role is RIDER, navigating to tabs");
         router.replace("/(tabs)");
       } else {
+        console.log("Role is not RIDER:", role, "logging out user");
         dispatch(logout());
         Alert.alert(
           "Access Denied",
@@ -66,7 +91,9 @@ export default function LoginScreen() {
         );
       }
     }
-  }, [token, role, router]);
+  }, [token, role, router, isSubmitted]);
+
+  console.log("Current input values:", credentials);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,18 +106,20 @@ export default function LoginScreen() {
         style={styles.input}
         placeholder="Username"
         value={credentials.username}
-        onChangeText={(text) =>
-          setCredentials({ ...credentials, username: text })
-        }
+        onChangeText={(text) => {
+          console.log("Username changed:", text);
+          setCredentials({ ...credentials, username: text });
+        }}
         autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         value={credentials.password}
-        onChangeText={(text) =>
-          setCredentials({ ...credentials, password: text })
-        }
+        onChangeText={(text) => {
+          console.log("Password changed, length:", text.length);
+          setCredentials({ ...credentials, password: text });
+        }}
         secureTextEntry
       />
       <TouchableOpacity
