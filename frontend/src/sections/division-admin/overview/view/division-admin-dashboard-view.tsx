@@ -1,11 +1,12 @@
 import { FaChevronDown, FaClipboardList, FaFileAlt, FaFileDownload, FaSignOutAlt, FaUsers } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom'; 
 
-import { AppDispatch } from '@/stores/store';
+import { AppDispatch, RootState } from '@/stores/store';
 import { logout } from '@/stores/slices/auth/auth-actions';
 import { saveAs } from 'file-saver';
-import { useDispatch } from 'react-redux';
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useState, useMemo, useEffect } from 'react';
+import { fetchPoliceOfficers } from "@/stores/slices/officer/officer-actions";
 
 const finesData = [
   { id: 1, officer: 'Abram Vaccaro', officerId: 'ABX-2938-PLQ', license: 'ABX-2938-PLQ', vehicle: 'CAB-1234', date: '2025-02-28', reason: 'A2597', status: 'Pending' },
@@ -24,6 +25,14 @@ function AdminDashboardView() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
+  // Get officers data from the Redux store
+  const { officers } = useSelector((state: RootState) => state.officer);
+
+  // Fetch officers when component mounts
+  useEffect(() => {
+    dispatch(fetchPoliceOfficers());
+  }, [dispatch]);
+
   const handleLogout = () => {
     dispatch(logout());
     navigate("/");
@@ -33,6 +42,23 @@ function AdminDashboardView() {
     (activeTab === 'All' || fine.status === activeTab) &&
     (searchAttribute !== 'date' ? String(fine[searchAttribute as keyof typeof fine]).toLowerCase().includes(searchQuery.toLowerCase()) : fine.date.includes(filterDate))
   );
+
+  // Calculate statistics for dashboard KPIs
+  const dashboardStats = useMemo(() => {
+    const totalFines = finesData.length;
+    const pendingFines = finesData.filter(fine => fine.status === 'Pending').length;
+    const completedFines = finesData.filter(fine => fine.status === 'Completed').length;
+    
+    // Get the actual officer count from the Redux store
+    const activeOfficersCount = officers.length;
+    
+    return {
+      totalFines,
+      pendingFines,
+      completedFines,
+      activeOfficersCount
+    };
+  }, [finesData, officers]); // Now depends on officers array too
 
   const exportCSV = () => {
     const csvContent = [
@@ -66,81 +92,80 @@ function AdminDashboardView() {
           </div>
         </header>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - Now updated with dynamic data */}
         <div className="grid grid-cols-3 gap-4 mt-5">
           <div className="p-4 bg-white shadow rounded-lg flex flex-col items-center">
             <FaClipboardList className="text-blue-500 text-3xl" />
-            <p className="text-lg font-bold">100</p>
+            <p className="text-lg font-bold">{dashboardStats.totalFines}</p>
             <span className="text-gray-500">Total Fines Issued</span>
           </div>
           <div className="p-4 bg-white shadow rounded-lg flex flex-col items-center">
             <FaFileAlt className="text-green-500 text-3xl" />
-            <p className="text-lg font-bold">98</p>
+            <p className="text-lg font-bold">{dashboardStats.completedFines}</p>
             <span className="text-gray-500">Total Fines Cleared</span>
           </div>
           <div className="p-4 bg-white shadow rounded-lg flex flex-col items-center">
             <FaUsers className="text-purple-500 text-3xl" />
-            <p className="text-lg font-bold">10</p>
+            <p className="text-lg font-bold">{dashboardStats.activeOfficersCount}</p>
             <span className="text-gray-500">Active Officers</span>
           </div>
         </div>
 
         {/* Tabs, Search & Date Filter */}
         <div className="mt-6 flex space-x-4 items-center">
-  {['All', 'Pending', 'Completed'].map(tab => (
-    <button
-      key={tab}
-      className={`px-4 py-2 rounded-lg ${activeTab === tab ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-      onClick={() => setActiveTab(tab)}
-    >
-      {tab} Fines
-    </button>
-  ))}
-  <select className="px-2 py-2 border rounded-lg" value={searchAttribute} onChange={(e) => setSearchAttribute(e.target.value)}>
-    <option value="officerId">Officer ID</option>
-    <option value="license">License No</option>
-    <option value="date">Date</option>
-  </select>
-  {searchAttribute !== 'date' && (
-    <input
-      type="text"
-      placeholder="Search fines..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  )}
-  {searchAttribute === 'date' && (
-    <input
-      type="date"
-      value={filterDate}
-      onChange={(e) => setFilterDate(e.target.value)}
-      className="px-2 py-2 border rounded-lg"
-    />
-  )}
-  <button
-    onClick={exportCSV}
-    className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center"
-  >
-    <FaFileDownload className="mr-2" /> Generate Report
-  </button>
-  <button
-    onClick={() => {
-      setActiveTab('All');
-      setSearchQuery('');
-      setSearchAttribute('officerId');
-      setFilterDate('');
-    }}
-    className="px-4 py-2 bg-gray-400 text-white rounded-lg"
-  >
-    Reset Filters
-  </button>
-</div>
+          {['All', 'Pending', 'Completed'].map(tab => (
+            <button
+              key={tab}
+              className={`px-4 py-2 rounded-lg ${activeTab === tab ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab} Fines
+            </button>
+          ))}
+          <select className="px-2 py-2 border rounded-lg" value={searchAttribute} onChange={(e) => setSearchAttribute(e.target.value)}>
+            <option value="officerId">Officer ID</option>
+            <option value="license">License No</option>
+            <option value="date">Date</option>
+          </select>
+          {searchAttribute !== 'date' && (
+            <input
+              type="text"
+              placeholder="Search fines..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          )}
+          {searchAttribute === 'date' && (
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="px-2 py-2 border rounded-lg"
+            />
+          )}
+          <button
+            onClick={exportCSV}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center"
+          >
+            <FaFileDownload className="mr-2" /> Generate Report
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('All');
+              setSearchQuery('');
+              setSearchAttribute('officerId');
+              setFilterDate('');
+            }}
+            className="px-4 py-2 bg-gray-400 text-white rounded-lg"
+          >
+            Reset Filters
+          </button>
+        </div>
 
-
-       {/* Fines Table */}
+        {/* Fines Table */}
         <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
-          <table className="w-full  text-left border-collapse">
+          <table className="w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-700">
               <tr>
                 <th className="p-3">Fine ID</th>
