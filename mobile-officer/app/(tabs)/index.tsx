@@ -10,21 +10,32 @@ import {
   View
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-
+import axios from "axios";
 import DropDownPicker from 'react-native-dropdown-picker';
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Link } from "expo-router";
 import { RootState } from "@/stores/reducers";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScannerScreen from "../scanner/scanner";
+import { createFineAction, getAllFinesAction } from "@/stores/slices/fine/fine-action";
 import { useCameraPermissions } from "expo-camera";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from "react-redux";
+import { AppDispatch } from "../../stores/store";
+import { NavigationProp } from '@react-navigation/native';
+import { FineRequest } from "@/types/fine-types";
+
+// Define navigation param types
+type RootStackParamList = {
+  FineHistory: { licenseNumber: string };
+  // Add other screens as needed
+};
 
 const HomeScreen: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const [isModalVisible, setModalVisible] = useState(false);
-  const [date, setDate] = useState<string>('');
   const [formData, setFormData] = useState({
+    date: new Date().toISOString().split('T')[0], // Initialize with current date in YYYY-MM-DD format
     driverName: '',
     licenseNumber: '',
     vehicleNumber: '',
@@ -33,26 +44,81 @@ const HomeScreen: React.FC = () => {
     location: '',
   });
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Get the fine state from Redux
+  const fineState = useSelector((state: RootState) => state.fines);
 
-  
-  const handleFormSubmit = () => {
+  // Handle form submit with backend integration
+  const handleFormSubmit = async () => {
     if (validateForm()) {
-      Alert.alert('Success', 'Fine created successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            setModalVisible(false);
-            setFormData({ driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' });
-            navigation.navigate('FineHistory' as never); // Replace 'FineHistory' with your actual route name
-          },
-        },
-      ]);
+      setIsLoading(true);
+      try {
+        // Prepare the data in the format expected by the API
+        const fineRequestData: FineRequest = {
+          driverName: formData.driverName,
+          licenseNumber: formData.licenseNumber,
+          vehicleNumber: formData.vehicleNumber,
+          category: formData.reason, // Map reason to category
+          fineAmount: parseFloat(formData.fine),
+          location: formData.location,
+          // Add any other required fields from your API
+          policeOfficerId: 1, // You may want to get this from user state or context
+
+        };
+
+        // Dispatch the action with form data
+        const resultAction = await dispatch(createFineAction(fineRequestData));
+
+        if (createFineAction.fulfilled.match(resultAction)) {
+          // Refresh the fines list
+          dispatch(getAllFinesAction());
+
+          // Success
+          Alert.alert('Success', 'Fine created successfully!', [
+            {
+              text: 'OK',
+              onPress: () => {
+                setModalVisible(false);
+                resetForm();
+                navigation.navigate('FineHistory', { licenseNumber: formData.licenseNumber });
+              },
+            },
+          ]);
+        } else {
+          // Error from the action
+          Alert.alert('Error', resultAction.error?.message || 'Failed to create fine. Please try again.');
+        }
+      } catch (error) {
+        console.error("Error creating fine:", error);
+        Alert.alert('Error', 'Something went wrong. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const [errors, setErrors] = useState({ driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' });
+  // Reset form helper
+  const resetForm = () => {
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      driverName: '',
+      licenseNumber: '',
+      vehicleNumber: '',
+      reason: '',
+      fine: '',
+      location: ''
+    });
+  };
+
+  const [errors, setErrors] = useState({ date: '', driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' });
+
+  // Add state to track license number validation status
+  const [isLicenseValid, setIsLicenseValid] = useState(false);
+
+  // Add state for license search
+  const [searchLicense, setSearchLicense] = useState('');
 
   const [reasons] = useState([
     { label: 'SV', fine: '1500.00' },
@@ -64,28 +130,32 @@ const HomeScreen: React.FC = () => {
 
   const [openDropdown, setOpenDropdown] = useState(false);
 
+  // Handle input changes with validation
   const handleInputChange = useCallback((field: keyof typeof formData, value: string) => {
-    if (field === "licenseNumber") {
-      // Remove non-numeric characters and limit to 10 digits
-      const formattedValue = value.replace(/\D/g, "").slice(0, 10);
-
-      setFormData((prev) => ({ ...prev, licenseNumber: formattedValue }));
-
-      // Validate License Number (Only 10 Digits Allowed)
-      if (formattedValue.length !== 10 && formattedValue.length > 0) {
-        setErrors((prev) => ({ ...prev, licenseNumber: "License Number must be exactly 10 digits" }));
-      } else {
-        setErrors((prev) => ({ ...prev, licenseNumber: "" }));
+    // Apply field-specific validation during input
+    if (field === 'licenseNumber') {
+      // Only allow numbers for license number and maximum 10 digits
+      if (!/^\d*$/.test(value) || value.length > 10) {
+        return;
       }
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+
+      // Update license validation status
+      setIsLicenseValid(value.length === 10);
     }
+
+    if (field === 'driverName' && !/^[A-Za-z\s]*$/.test(value)) {
+      // Only allow letters and spaces for driver name
+      return;
+    }
+
+    if (field === 'vehicleNumber' && !/^[A-Z0-9]*$/.test(value)) {
+      // Only allow capital letters and numbers for vehicle number
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: '' }));
   }, []);
-
-
-  // Handle input changes
-
 
   // Handle Reason Dropdown change
   const handleReasonChange = (value: string | null) => {
@@ -103,38 +173,34 @@ const HomeScreen: React.FC = () => {
 
   const validateForm = () => {
     let valid = true;
-    let newErrors = { driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' };
+    let newErrors = { date: '', driverName: '', licenseNumber: '', vehicleNumber: '', reason: '', fine: '', location: '' };
 
-    // Check for empty fields
+    // Check for empty fields - exclude date since it's auto-filled
     Object.keys(formData).forEach((key) => {
-      if (!formData[key as keyof typeof formData].trim()) {
-        newErrors[key as keyof typeof formData] = `${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()} is required`
-;
-        valid = false;
+      if (key !== 'date') { // Skip validation for date field
+        const formattedKey = formatFieldName(key); // Format key to readable text
+        if (!formData[key as keyof typeof formData].trim()) {
+          newErrors[key as keyof typeof newErrors] = `${formattedKey} is required`;
+          valid = false;
+        }
       }
     });
 
-    // License Number: Only digits allowed
-    <TextInput
-      style={styles.input}
-      placeholder="License Number"
-      value={formData.licenseNumber}
-      keyboardType="numeric" // Only shows numeric keyboard
-      onChangeText={(text) => {
-        if (/^\d*$/.test(text)) { // Ensures only numbers can be typed
-          setFormData({ ...formData, licenseNumber: text });
-          setErrors({ ...errors, licenseNumber: '' });
-        } else {
-          setErrors({ ...errors, licenseNumber: 'Only numbers are allowed' });
-        }
-      }}
-    />
-    { errors.licenseNumber ? <Text style={styles.errorText}>{errors.licenseNumber}</Text> : null }
+    // Driver Name: Only letters allowed
+    if (formData.driverName && !/^[A-Za-z\s]+$/.test(formData.driverName)) {
+      newErrors['driverName'] = 'Only letters and spaces are allowed';
+      valid = false;
+    }
 
+    // License Number: Must be exactly 10 digits
+    if (formData.licenseNumber && (!/^\d+$/.test(formData.licenseNumber) || formData.licenseNumber.length !== 10)) {
+      newErrors['licenseNumber'] = 'License number must be exactly 10 digits';
+      valid = false;
+    }
 
     // Vehicle Number: Only capital letters and numbers allowed
-    if (!/^[A-Z0-9]+$/.test(formData.vehicleNumber)) {
-      newErrors.vehicleNumber = 'Vehicle Number must contain only capital letters and numbers';
+    if (formData.vehicleNumber && !/^[A-Z0-9]+$/.test(formData.vehicleNumber)) {
+      newErrors['vehicleNumber'] = 'Only capital letters and numbers are allowed';
       valid = false;
     }
 
@@ -148,29 +214,71 @@ const HomeScreen: React.FC = () => {
     return valid;
   };
 
+  const formatFieldName = (fieldName: string) => {
+    return fieldName
+      .replace(/([A-Z])/g, ' $1') // Add a space before capital letters
+      .replace(/^./, (str) => str.toUpperCase()) // Capitalize the first letter
+      .trim(); // Trim any extra spaces
+  };
 
+  // Handle license search
+  const handleLicenseSearch = async () => {
+    if (searchLicense.length !== 10 || !/^\d+$/.test(searchLicense)) {
+      Alert.alert('Invalid License', 'Please enter a valid 10-digit license number');
+      return;
+    }
+
+    try {
+      // Navigate to the history screen with the license number
+      navigation.navigate('FineHistory', { licenseNumber: searchLicense });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to search for license history');
+    }
+  };
+
+  // Load all fines when component mounts
   useEffect(() => {
-    setDate(new Date().toISOString().split('T')[0]);
-  }, []);
+    dispatch(getAllFinesAction());
+  }, [dispatch]);
 
-  // Handle form submission
-  // Removed duplicate handleFormSubmit function
+  // Set current date automatically when component mounts or modal opens
+  useEffect(() => {
+    const currentDate = new Date().toISOString().split('T')[0];
+    // Update form data with current date
+    setFormData(prev => ({ ...prev, date: currentDate }));
+  }, [isModalVisible]); // Re-run when modal visibility changes
 
   const [permission, requestPermission] = useCameraPermissions();
-
   const isPermissionGranted = Boolean(permission?.granted);
-
   const [isScannerVisible, setScannerVisible] = useState<boolean>(false);
-
   const scannedData = useSelector((state: RootState) => state.scanner);
 
   useEffect(() => {
     if (scannedData.scannedData !== null) {
       setScannerVisible(false);
       setModalVisible(true);
+
+      // If scanned data contains license information, populate the form
+      // This assumes the scanned data is in a format you can parse
+      try {
+        const parsedData = JSON.parse(scannedData.scannedData);
+        if (parsedData.licenseNumber) {
+          setFormData(prev => ({
+            ...prev,
+            driverName: parsedData.driverName || prev.driverName,
+            licenseNumber: parsedData.licenseNumber || prev.licenseNumber,
+            vehicleNumber: parsedData.vehicleNumber || prev.vehicleNumber,
+          }));
+
+          // Update license validation status if populated from scan
+          setIsLicenseValid(parsedData.licenseNumber.length === 10);
+        }
+      } catch (e) {
+        // If scanned data isn't JSON or doesn't have the expected format
+        console.log("Could not parse scanned data:", e);
+      }
     }
-  }
-  , [scannedData]);
+  }, [scannedData]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -178,36 +286,59 @@ const HomeScreen: React.FC = () => {
       <Image
         source={require("../../assets/images/fine-logo.jpg")}
         style={styles.logo}
-      /> 657a4d3 (add camera permissions and integrate QR code scanner modal in HomeScreen)
+      />
 
       <View style={styles.card}>
         <Text style={styles.title}>Create Fine</Text>
-          <TouchableOpacity
-            style={[styles.button, styles.outlineButton]}
-            onPress={() => setModalVisible(true)}
-          >
-            <Icon name="pencil-outline" size={22} color="#3B82F6" />
-            <Text style={styles.outlineButtonText}>Create Manually</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.outlineButton]}
+          onPress={() => setModalVisible(true)}
+        >
+          <Icon name="pencil-outline" size={22} color="#3B82F6" />
+          <Text style={styles.outlineButtonText}>Create Manually</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.filledButton]}
-            onPress={() => setScannerVisible(true)}
-          >
-            <Icon name="qrcode-scan" size={22} color="white" />
-            <Text style={styles.filledButtonText}>Scan QR Code</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.filledButton]}
+          onPress={() => {
+            if (!isPermissionGranted) {
+              requestPermission();
+            } else {
+              setScannerVisible(true);
+            }
+          }}
+        >
+          <Icon name="qrcode-scan" size={22} color="white" />
+          <Text style={styles.filledButtonText}>Scan QR Code</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.title}>Driver Fine History</Text>
         <View style={styles.inputContainer}>
-          <TextInput placeholder="Type License Number" style={styles.input} />
-          <TouchableOpacity style={styles.searchButton}>
+          <TextInput
+            placeholder="Type License Number"
+            style={styles.input}
+            keyboardType="numeric" // Use numeric keyboard for license number search
+            maxLength={10}  // Limit input to 10 characters
+            value={searchLicense}
+            onChangeText={setSearchLicense}
+          />
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={handleLicenseSearch}
+          >
             <Icon name="magnify" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Loading indicator when API requests are in progress */}
+      {fineState.loading && (
+        <View style={styles.loadingIndicator}>
+          <Text>Loading...</Text>
+        </View>
+      )}
 
       {/* Modal */}
       <Modal visible={isModalVisible} transparent animationType="slide">
@@ -219,64 +350,102 @@ const HomeScreen: React.FC = () => {
                 <Icon name="close-circle-outline" size={28} color="red" />
               </TouchableOpacity>
             </View>
-            {Object.keys(formData).map((field, index) => (
-              field !== 'fine' && field !== 'reason' && (
-                <View key={index} style={styles.inputGroup}>
-                  <Text style={styles.label}>{field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} <Text style={styles.required}>*</Text></Text>
 
-                  <TextInput
-                    placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim()}`}
-                    style={[styles.inputField, errors[field as keyof typeof errors] && { borderColor: 'red' }]}
-                    value={formData[field as keyof typeof formData]}
-                    onChangeText={(text) => {
-                      let formattedText = text;
+            {/* Form fields excluding date */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Driver Name <Text style={styles.required}>*</Text></Text>
+              <TextInput
+                placeholder="Enter driver name"
+                style={[styles.inputField, errors.driverName && { borderColor: 'red' }]}
+                value={formData.driverName}
+                onChangeText={(text) => handleInputChange('driverName', text)}
+              />
+              {errors.driverName && <Text style={styles.errorText}>{errors.driverName}</Text>}
+            </View>
 
-                      if (field === "licenseNumber") {
-                        formattedText = text.replace(/\D/g, "").slice(0, 10); // Allow only numbers, limit to 10 digits
-                      }
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>License Number <Text style={styles.required}>*</Text></Text>
+              <TextInput
+                placeholder="Enter license number"
+                style={[
+                  styles.inputField,
+                  // Apply green border when valid, red border when invalid/typing
+                  isLicenseValid ? styles.validInput : styles.invalidInput
+                ]}
+                value={formData.licenseNumber}
+                onChangeText={(text) => handleInputChange('licenseNumber', text)}
+                keyboardType="numeric"
+                maxLength={10} // Limit input to 10 characters
+              />
+              {errors.licenseNumber && <Text style={styles.errorText}>{errors.licenseNumber}</Text>}
+              {!isLicenseValid && formData.licenseNumber.length > 0 &&
+                <Text style={styles.helperText}>License number must be exactly 10 digits</Text>
+              }
+            </View>
 
-                      handleInputChange(field as keyof typeof formData, formattedText);
-                    }}
-                    keyboardType={field === "licenseNumber" ? "numeric" : "default"} // Ensure numeric keyboard for license number
-                    maxLength={field === "licenseNumber" ? 10 : undefined} // Restrict max length for license number
-                  />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Vehicle Number <Text style={styles.required}>*</Text></Text>
+              <TextInput
+                placeholder="Enter vehicle number"
+                style={[styles.inputField, errors.vehicleNumber && { borderColor: 'red' }]}
+                value={formData.vehicleNumber}
+                onChangeText={(text) => handleInputChange('vehicleNumber', text.toUpperCase())} // Auto-convert to uppercase
+                autoCapitalize="characters" // Force uppercase
+              />
+              {errors.vehicleNumber && <Text style={styles.errorText}>{errors.vehicleNumber}</Text>}
+            </View>
 
-                  {errors[field as keyof typeof errors] && <Text style={styles.errorText}>{errors[field as keyof typeof errors]}</Text>}
-                </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Location <Text style={styles.required}>*</Text></Text>
+              <TextInput
+                placeholder="Enter location"
+                style={[styles.inputField, errors.location && { borderColor: 'red' }]}
+                value={formData.location}
+                onChangeText={(text) => handleInputChange('location', text)}
+              />
+              {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
+            </View>
 
-                
-              )
-            ))}
-
-            <DropDownPicker
-              open={openDropdown}
-              value={formData.reason}
-              items={reasons.map((reason) => ({ label: reason.label, value: reason.label }))}
-              setOpen={setOpenDropdown}
-              setValue={(callback) => {
-                const value = typeof callback === 'function' ? callback(formData.reason) : callback;
-                handleReasonChange(value);
-              }}
-              placeholder="Select Reason"
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-            />
-            
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Reason <Text style={styles.required}>*</Text></Text>
+              <DropDownPicker
+                open={openDropdown}
+                value={formData.reason}
+                items={reasons.map((reason) => ({ label: reason.label, value: reason.label }))}
+                setOpen={setOpenDropdown}
+                setValue={(callback) => {
+                  const value = typeof callback === 'function' ? callback(formData.reason) : callback;
+                  handleReasonChange(value);
+                }}
+                placeholder="Select Reason"
+                style={styles.dropdown}
+                dropDownContainerStyle={styles.dropdownContainer}
+              />
+              {errors.reason && <Text style={styles.errorText}>{errors.reason}</Text>}
+            </View>
 
             <Text style={styles.fineText}>Fine Amount: LKR {formData.fine || '0.00'}</Text>
 
-            <View style={styles.modalButtons}>
 
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.button, styles.outlineButton]}
+                style={[
+                  styles.button,
+                  styles.outlineButton,
+                  (isLoading || fineState.loading) && styles.disabledButton
+                ]}
                 onPress={handleFormSubmit}
+                disabled={isLoading || fineState.loading}
               >
                 <Icon name="check-circle-outline" size={22} color="#3B82F6" />
-                <Text style={styles.outlineButtonText}>Create Fine</Text>
+                <Text style={styles.outlineButtonText}>
+                  {(isLoading || fineState.loading) ? 'Creating...' : 'Create Fine'}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.filledButton]}
                 onPress={() => setModalVisible(false)}
+                disabled={isLoading || fineState.loading}
               >
                 <Icon name="close-circle-outline" size={22} color="white" />
                 <Text style={styles.filledButtonText}>Discard Fine</Text>
@@ -321,7 +490,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     marginBottom: 16,
   },
-  flexColumn: { alignItems: "center" },
   title: { fontSize: 24, fontWeight: "bold", color: "black", marginBottom: 16 },
   button: {
     flexDirection: "row",
@@ -346,6 +514,11 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginLeft: 8,
   },
+  disabledButton: {
+    opacity: 0.7,
+    backgroundColor: "#cccccc",
+    borderColor: "#999999",
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -359,14 +532,17 @@ const styles = StyleSheet.create({
   searchButton: { backgroundColor: '#3B82F6', padding: 10, borderRadius: 8 },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: { width: '80%', backgroundColor: 'white', padding: 16, borderRadius: 12, shadowOpacity: 0.1 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { fontSize: 24, fontWeight: 'bold' },
   modalButtons: { marginTop: 16 },
   inputGroup: { marginBottom: 16 },
   label: { fontSize: 16, color: '#333', marginBottom: 8 },
   required: { color: 'red' },
   inputField: { borderWidth: 1, borderColor: '#ccc', padding: 12, borderRadius: 8, fontSize: 16 },
-  errorText: { color: 'red', fontSize: 14 },
+  errorText: { color: 'red', fontSize: 14, marginTop: 4 },
+  helperText: { color: '#666', fontSize: 12, marginTop: 4 },
+  validInput: { borderColor: 'green', borderWidth: 1 },
+  invalidInput: { borderColor: 'red', borderWidth: 1 },
   dropdown: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
   dropdownContainer: { borderColor: '#ccc', borderRadius: 8 },
   fineText: { fontSize: 16, fontWeight: 'bold', color: '#333', marginTop: 16 },
@@ -383,6 +559,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     shadowOpacity: 0.1,
   },
+  loadingIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+  }
 });
 
 export default HomeScreen;
