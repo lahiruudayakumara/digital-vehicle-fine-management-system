@@ -1,7 +1,6 @@
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 import { AppDispatch } from "@/stores/store";
-import Button from "@/components/common/Button";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,7 +36,14 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.role}>Traffic officer</Text>
         </View>
 
-        <Button title="Logout" onPress={handleLogout} />
+        {/* Custom Logout Button */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Icon name="logout" size={20} color="white" style={styles.logoutIcon} />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
 
         {/* Info Fields */}
         <View style={styles.infoContainer}>
@@ -80,6 +86,31 @@ const styles = StyleSheet.create({
   profileImage: { width: 150, height: 150, borderRadius: 100 },
   name: { fontSize: 20, fontWeight: "bold", color: "black", marginTop: 8 },
   role: { fontSize: 14, color: "gray", marginBottom: 8 },
+  logoutButton: {
+    flexDirection: "row",
+    backgroundColor: "#FF3B30",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 12,
+    width: "100%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  logoutText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  logoutIcon: {
+    marginRight: 2,
+  },
   infoContainer: { width: "100%", marginTop: 12 },
   inputGroup: {
     flexDirection: "row",
