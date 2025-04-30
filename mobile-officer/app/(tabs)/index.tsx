@@ -121,11 +121,13 @@ const HomeScreen: React.FC = () => {
   const [searchLicense, setSearchLicense] = useState('');
 
   const [reasons] = useState([
-    { label: 'SV', fine: '1500.00' },
-    { label: 'TSSV', fine: '1000.00' },
-    { label: 'LRI', fine: '1000.00' },
-    { label: 'VCSV', fine: '2000.00' },
-    { label: 'DDDV', fine: '5000.00' },
+    { label: 'Driving without a valid license', fine: '4000.00' },
+    { label: 'Exceeding speed limits', fine: '3000.00' },
+    { label: 'Not wearing a seat belt / helmet', fine: '1000.00' },
+    { label: 'Using a mobile phone while driving', fine: '2000.00' },
+    { label: 'Driving under the influence of alcohol', fine: '25000.00' },
+    { label: 'Disobeying traffic signals / signs', fine: '3000.00' },
+
   ]);
 
   const [openDropdown, setOpenDropdown] = useState(false);
