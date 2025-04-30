@@ -1,7 +1,8 @@
 import { FaChevronDown, FaClipboardList, FaFileAlt, FaFileDownload, FaSignOutAlt, FaUsers } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom'; // Import Link
+import { Link, useNavigate } from 'react-router-dom'; 
 
-import { logout } from '@/stores/slices/auth/auth-slice';
+import { AppDispatch } from '@/stores/store';
+import { logout } from '@/stores/slices/auth/auth-actions';
 import { saveAs } from 'file-saver';
 import { useDispatch } from 'react-redux';
 import { useState } from 'react';
@@ -20,7 +21,7 @@ function AdminDashboardView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchAttribute, setSearchAttribute] = useState('officerId');
   const [filterDate, setFilterDate] = useState('');
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   const handleLogout = () => {
