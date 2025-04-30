@@ -7,14 +7,13 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface RiderRepository extends JpaRepository<Rider, Long> {
-    Optional<Rider> findByLicenseId(String licenseId);
-
-    boolean existsByUsername(String username);
-
+public interface RiderRepository extends JpaRepository<Rider, String> {
+    
+    Optional<Rider> findByEmail(String email);
+    
+    Optional<Rider> findByLicenseNumber(String licenseNumber);
+    
     boolean existsByEmail(String email);
-
-    boolean existsByLicenseId(String licenseId);
-
-    Optional<Rider> findByUsername(String username);
+    
+    boolean existsByLicenseNumber(String licenseNumber);
 }

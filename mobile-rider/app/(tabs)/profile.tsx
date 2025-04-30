@@ -1,12 +1,11 @@
-//profile.tsx
-
-import { Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 import { AppDispatch } from '@/stores/store';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { logout } from '@/stores/slices/auth/auth-actions';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
 
 interface UserProfile {
   id: string;
@@ -24,19 +23,52 @@ interface UserProfile {
 const ProfileScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  // Mock user data
-  const profile: UserProfile = {
-    id: 'USR123456',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '(555) 123-4567',
-    licenseNumber: '123456789',
-    licenseType: 'Class C',
-    expiryDate: 'May 15, 2027',
-    avatarUrl: '@/assets/images/avatar.png', // You can replace with require(...) if needed
-    vehicleCount: 2,
-    joinedDate: 'Jan 2020',
-  };
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Get auth token from Redux store (assuming you have this in your auth state)
+  const token = useSelector((state: any) => state.auth.token);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://192.168.8.101:8082/api/riders', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        // Map the API response to our UserProfile interface
+        const userData = response.data;
+        
+        // Adjust this mapping based on the actual API response structure
+        const userProfile: UserProfile = {
+          id: userData.id || 'N/A',
+          name: userData.name || 'N/A',
+          email: userData.email || 'N/A',
+          phone: userData.phone || 'N/A',
+          licenseNumber: userData.licenseNumber || 'N/A',
+          licenseType: userData.licenseType || 'N/A',
+          expiryDate: userData.expiryDate || 'N/A',
+          avatarUrl: userData.avatarUrl || '@/assets/images/avatar.png',
+          vehicleCount: userData.vehicleCount || 0,
+          joinedDate: userData.joinedDate || 'N/A',
+        };
+        
+        setProfile(userProfile);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch user profile:', err);
+        setError('Failed to load profile data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token]);
 
   // Action handlers
   const handleEditProfile = () => {
@@ -51,16 +83,39 @@ const ProfileScreen: React.FC = () => {
     console.log('Navigate to payment history');
   };
 
-    const handleLogout = async () => {
-      await dispatch(logout());
-      router.replace("/(auth)/login");
-    }
+  const handleLogout = async () => {
+    await dispatch(logout());
+    router.replace("/(auth)/login");
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error || !profile) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error || 'Unable to load profile'}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={() => setLoading(true)} // This will trigger the useEffect again
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      
-      
       
       <ScrollView style={styles.scrollView}>
         {/* Quick Actions */}
@@ -160,8 +215,8 @@ const ProfileScreen: React.FC = () => {
 
         {/* App Version */}
         <View style={styles.versionContainer}>
-        <Button title="Logout" onPress={handleLogout} />
-        <Text style={styles.historyButtonText}></Text>
+          <Button title="Logout" onPress={handleLogout} />
+          <Text style={styles.historyButtonText}></Text>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
       </ScrollView>
@@ -179,13 +234,43 @@ const COLORS = {
   white: '#FFFFFF',
   success: '#16A34A', // Green
   text: '#1F2937', // Dark text for light mode
+  error: '#DC2626', // Red for errors
 };
 
 const styles = StyleSheet.create({
+  // ...existing styles...
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLORS.error,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Keep all the existing styles below...
   header: {
     padding: 24,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
@@ -348,4 +433,3 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
 });
-
