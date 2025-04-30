@@ -14,14 +14,11 @@ import java.util.Optional;
 @Service
 public class RiderDetailsService {
     
-    private final RiderRepository riderRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private RiderRepository riderRepository;
     
     @Autowired
-    public RiderDetailsService(RiderRepository riderRepository, PasswordEncoder passwordEncoder) {
-        this.riderRepository = riderRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private PasswordEncoder passwordEncoder;
     
     @Transactional(readOnly = true)
     public List<Rider> findAllRiders() {
@@ -29,18 +26,18 @@ public class RiderDetailsService {
     }
     
     @Transactional(readOnly = true)
-    public Optional<Rider> findRiderById(String id) {
+    public Optional<Rider> findRiderById(Long id) {
         return riderRepository.findById(id);
     }
     
     @Transactional(readOnly = true)
-    public Optional<Rider> findRiderByLicenseNumber(String licenseNumber) {
-        return riderRepository.findByLicenseNumber(licenseNumber);
+    public Optional<Rider> findRiderByLicenseId(String licenseId) {
+        return riderRepository.findByLicenseId(licenseId);
     }
     
     @Transactional(readOnly = true)
-    public Optional<Rider> findRiderByEmail(String email) {
-        return riderRepository.findByEmail(email);
+    public Optional<Rider> findRiderByUsername(String username) {
+        return riderRepository.findByUsername(username);
     }
     
     @Transactional
@@ -50,8 +47,8 @@ public class RiderDetailsService {
             rider.setRole(Role.RIDER);
         }
         
-        // Encode password if it's provided and not already encoded
-        if (rider.getPassword() != null && !rider.getPassword().startsWith("$2a$")) {
+        // Encode password if it's a new rider (id is null)
+        if (rider.getId() == null && rider.getPassword() != null) {
             rider.setPassword(passwordEncoder.encode(rider.getPassword()));
         }
         
@@ -59,8 +56,13 @@ public class RiderDetailsService {
     }
     
     @Transactional
-    public void deleteRider(String id) {
+    public void deleteRider(Long id) {
         riderRepository.deleteById(id);
+    }
+    
+    @Transactional(readOnly = true)
+    public boolean existsByUsername(String username) {
+        return riderRepository.existsByUsername(username);
     }
     
     @Transactional(readOnly = true)
@@ -69,7 +71,7 @@ public class RiderDetailsService {
     }
     
     @Transactional(readOnly = true)
-    public boolean existsByLicenseNumber(String licenseNumber) {
-        return riderRepository.existsByLicenseNumber(licenseNumber);
+    public boolean existsByLicenseId(String licenseId) {
+        return riderRepository.existsByLicenseId(licenseId);
     }
 }
