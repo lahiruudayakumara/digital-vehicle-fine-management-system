@@ -4,6 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from './loginStyles';
 import styles from './registerStyles';
+import Constants from 'expo-constants';
 
 interface FormErrors {
   fullName?: string;
@@ -72,18 +73,27 @@ export default function RegisterScreen() {
     try {
       setLoading(true);
       
-      // Replace with your actual API call
-      // For example:
-      // await registerUser({
-      //   fullName,
-      //   email,
-      //   username,
-      //   password,
-      //   role: "RIDER"
-      // });
+      // Get the API base URL from Constants or use a default
+      const apiBaseUrl = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.8.101:8082';
       
-      // Simulating API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName,
+          email,
+          username,
+          password,
+          role: "RIDER"
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Registration failed' }));
+        throw new Error(errorData.message || 'Registration failed');
+      }
       
       Alert.alert(
         "Registration Successful",
@@ -93,6 +103,7 @@ export default function RegisterScreen() {
         ]
       );
     } catch (error: any) {
+      console.error('Registration error:', error);
       Alert.alert(
         "Registration Failed",
         error.message || "Something went wrong. Please try again."
