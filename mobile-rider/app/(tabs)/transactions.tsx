@@ -4,6 +4,7 @@ import { COLORS } from "@/styles/color";
 import Icon from "react-native-vector-icons/FontAwesome";
 import React from "react";
 
+// Define the structure of a transaction object
 interface Transaction {
   id: string;
   date: string;
@@ -13,7 +14,9 @@ interface Transaction {
   status: "completed" | "pending" | "failed";
 }
 
+// Component to render a single transaction item
 const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }) => {
+  // Determine the color based on the transaction status
   let statusColor;
   if (transaction.status === "completed") {
     statusColor = COLORS.success;
@@ -23,6 +26,7 @@ const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }
     statusColor = COLORS.accent;
   }
 
+  // Determine the icon based on the transaction status
   let statusIcon;
   if (transaction.status === "completed") {
     statusIcon = "check-circle";
@@ -35,12 +39,14 @@ const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }
   return (
     <View style={styles.transactionItem}>
       <View style={styles.transactionHeader}>
+        {/* Display transaction description and metadata */}
         <View style={styles.transactionInfo}>
           <Text style={styles.transactionDescription}>{transaction.description}</Text>
           <Text style={styles.transactionMeta}>
             {transaction.date} • Fine ID: {transaction.fineId}
           </Text>
         </View>
+        {/* Display transaction amount and status */}
         <View style={styles.transactionAmount}>
           <Text style={styles.transactionAmountText}>
             Rs. {transaction.amount.toFixed(2)}
@@ -57,7 +63,9 @@ const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }
   );
 };
 
+// Main screen component to display the transaction history
 const TransactionScreen: React.FC = () => {
+  // Sample transaction data
   const transactions: Transaction[] = [
     {
       id: "T-20250315-001",
@@ -96,6 +104,7 @@ const TransactionScreen: React.FC = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.transactionHistory}>
+        {/* Header section for transaction history */}
         <View style={styles.transactionHistoryHeader}>
           <Text style={styles.sectionTitle}>Transaction History</Text>
           <TouchableOpacity style={styles.viewAllButton}>
@@ -103,6 +112,7 @@ const TransactionScreen: React.FC = () => {
             <Icon name="chevron-down" size={16} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
+        {/* Render each transaction item */}
         {transactions.map((transaction) => (
           <TransactionItem key={transaction.id} transaction={transaction} />
         ))}
@@ -111,6 +121,7 @@ const TransactionScreen: React.FC = () => {
   );
 };
 
+// Styles for the screen and components
 const styles = StyleSheet.create({
   container: {
     flex: 1,

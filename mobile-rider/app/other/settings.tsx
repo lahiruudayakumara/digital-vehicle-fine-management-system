@@ -1,5 +1,4 @@
-//settings.tsx
-
+// Import necessary modules and components
 import {
   Platform,
   ScrollView,
@@ -15,14 +14,14 @@ import styles from "./settingsStyles";
 
 // Define types for settings
 interface NotificationSettings {
-  paymentReminders: boolean;
-  dueNotices: boolean;
-  promotionalAlerts: boolean;
+  paymentReminders: boolean; // Toggle for payment reminders
+  dueNotices: boolean; // Toggle for due date notices
+  promotionalAlerts: boolean; // Toggle for promotional alerts
 }
 
 interface UserPreferences {
-  darkMode: boolean;
-  useBiometrics: boolean;
+  darkMode: boolean; // Toggle for dark mode
+  useBiometrics: boolean; // Toggle for biometric authentication
 }
 
 const SettingsScreen: React.FC = () => {
@@ -38,17 +37,19 @@ const SettingsScreen: React.FC = () => {
     useBiometrics: true,
   });
 
-  // Toggle handlers
+  // Toggle handlers for updating settings
   const toggleSetting = (
     settingType: "notifications" | "preferences",
     setting: string
   ) => {
     if (settingType === "notifications") {
+      // Update notification settings
       setNotifications({
         ...notifications,
         [setting]: !notifications[setting as keyof NotificationSettings],
       });
     } else {
+      // Update user preferences
       setPreferences({
         ...preferences,
         [setting]: !preferences[setting as keyof UserPreferences],
@@ -56,7 +57,7 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
-  // Navigation/action handlers
+  // Navigation/action handlers for different settings options
   const handleAccountPress = () => {
     console.log("Navigate to account details");
   };
@@ -79,6 +80,7 @@ const SettingsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Status bar configuration */}
       <StatusBar barStyle="light-content" />
 
       <ScrollView
@@ -89,6 +91,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
 
+          {/* Personal Information */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={handleAccountPress}
@@ -101,6 +104,7 @@ const SettingsScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
 
+          {/* Payment Methods */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={handlePaymentMethodsPress}
@@ -118,6 +122,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
 
+          {/* Payment Reminders */}
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Payment Reminders</Text>
             <Switch
@@ -133,6 +138,7 @@ const SettingsScreen: React.FC = () => {
             />
           </View>
 
+          {/* Due Date Notices */}
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Due Date Notices</Text>
             <Switch
@@ -144,6 +150,7 @@ const SettingsScreen: React.FC = () => {
             />
           </View>
 
+          {/* Promotional Alerts */}
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Promotional Alerts</Text>
             <Switch
@@ -164,6 +171,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
 
+          {/* Dark Mode */}
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Dark Mode</Text>
             <Switch
@@ -175,6 +183,7 @@ const SettingsScreen: React.FC = () => {
             />
           </View>
 
+          {/* Use Biometrics */}
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Use Biometrics</Text>
             <Switch
@@ -193,6 +202,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support & Legal</Text>
 
+          {/* Help Center */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={handleHelpPress}
@@ -202,6 +212,7 @@ const SettingsScreen: React.FC = () => {
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
+          {/* Privacy Policy */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={handlePrivacyPress}
@@ -221,6 +232,7 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
+        {/* App Version */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>

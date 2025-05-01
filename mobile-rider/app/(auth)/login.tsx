@@ -1,108 +1,163 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import styles from './loginStyles';
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Link, useRouter } from "expo-router";
+import { login, logout } from "@/stores/slices/auth/auth-actions";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+
+import { AppDispatch } from "@/stores/store";
+import { LoginRequest } from "@/types/auth-types";
+import { RootState } from "@/stores/reducers";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Define the error state type
 interface FormErrors {
-  email?: string;
-  password?: string;
+  email?: string; // Optional error message for email
+  password?: string; // Optional error message for password
 }
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('Password123!');
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isFormValid, setIsFormValid] = useState(false);
+  // State to store user credentials
+  const [credentials, setCredentials] = useState<LoginRequest>({
+    username: "JohnDoe", // Default username
+    password: "StrongPass123", // Default password
+  });
+
+  // State to manage loading state during login
+  const [loading, setLoading] = useState(false);
+
+  // Redux dispatch function to trigger actions
+  const dispatch = useDispatch<AppDispatch>();
+  // Router for navigation
   const router = useRouter();
-  
-  // Validate form inputs
-  useEffect(() => {
-    validateForm();
-  }, [email, password]);
-  
-  const validateForm = () => {
-    let newErrors: FormErrors = {};
-    
-    // Email validation
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    
-    // Password validation
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    
-    setErrors(newErrors);
-    setIsFormValid(Object.keys(newErrors).length === 0);
-  };
-  
-  const handleLogin = () => {
-    if (!isFormValid) {
-      Alert.alert('Invalid Form', 'Please fix the errors in the form');
+  // Retrieve token and role from Redux store
+  const token = useSelector((state: RootState) => state.auth.token);
+  const role = useSelector((state: RootState) => state.auth.role);
+
+  // Function to handle login logic
+  const handleLogin = async () => {
+    // Check if username and password are provided
+    if (!credentials.username || !credentials.password) {
+      Alert.alert("Error", "Please enter both username and password.");
       return;
     }
-    
-    // Simulate authentication
-    if (email === 'demo@example.com' && password === 'Password123!') {
-      router.replace('/(tabs)');
-    } else {
-      Alert.alert('Error', 'Invalid email or password');
+    try {
+      setLoading(true); // Set loading state to true
+      await dispatch(login(credentials)).unwrap(); // Dispatch login action
+    } catch (err: any) {
+      // Show error alert if login fails
+      Alert.alert(
+        "Login Failed",
+        "Invalid credentials or something went wrong."
+      );
+    } finally {
+      setLoading(false); // Reset loading state
     }
-    
   };
-  
+
+  // Effect to handle navigation based on token and role
+  useEffect(() => {
+    if (token) {
+      if (role === "RIDER") {
+        router.replace("/(tabs)"); // Navigate to rider's dashboard
+      } else {
+        dispatch(logout()); // Logout if role is not allowed
+        Alert.alert(
+          "Access Denied",
+          "You do not have permission to access this app."
+        );
+      }
+    }
+  }, [token, role, router]);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Log In</Text>
-      
+    <SafeAreaView style={styles.container}>
+      {/* App logo */}
+      <Image
+        source={require("../../assets/images/fine-logo.jpg")}
+        style={styles.logo}
+      />
+      {/* Login title */}
+      <Text style={styles.title}>Login</Text>
+      {/* Username input field */}
       <TextInput
-        style={[styles.input, errors.email ? styles.inputError : null]}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
+        style={styles.input}
+        placeholder="Username"
+        value={credentials.username}
+        onChangeText={(text) =>
+          setCredentials({ ...credentials, username: text })
+        }
         autoCapitalize="none"
       />
-      {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
-      
+      {/* Password input field */}
       <TextInput
-        style={[styles.input, errors.password ? styles.inputError : null]}
+        style={styles.input}
         placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
+        value={credentials.password}
+        onChangeText={(text) =>
+          setCredentials({ ...credentials, password: text })
+        }
         secureTextEntry
       />
-      {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
-      
-      <TouchableOpacity 
-        style={[styles.button, !isFormValid && styles.buttonDisabled]} 
+      {/* Login button */}
+      <TouchableOpacity
+        style={styles.button}
         onPress={handleLogin}
-        disabled={!isFormValid}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>Log In</Text>
+        <Text style={styles.buttonText}>{loading ? "Logging in..." : "Login"}</Text>
       </TouchableOpacity>
-      
-      <View style={styles.helpContainer}>
-        <Link href={{ pathname: "/(auth)/register" }} style={styles.link}>
-          <Text>Forgot Password?</Text>
-        </Link>
-        
-        <Link href={{ pathname: "/(auth)/register" }} style={styles.link}>
-          <Text>Don't have an account? Register</Text>
-        </Link>
-      </View>
-      
-      <View style={styles.demoInfoContainer}>
-        <Text style={styles.demoInfoText}>Demo credentials:</Text>
-        <Text style={styles.demoInfoText}>Email: demo@example.com</Text>
-        <Text style={styles.demoInfoText}>Password: Password123!</Text>
-      </View>
-    </View>
+    </SafeAreaView>
   );
 }
+
+// Styles for the login screen
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    padding: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  input: {
+    width: "80%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    alignSelf: "center",
+  },
+  button: {
+    backgroundColor: "#3B82F6",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "80%",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+});
