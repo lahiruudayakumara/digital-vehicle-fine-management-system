@@ -1,13 +1,12 @@
-//profile.tsx
-
+// Import necessary libraries and components
 import { Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
 import { AppDispatch } from '@/stores/store';
 import React from 'react';
 import { logout } from '@/stores/slices/auth/auth-actions';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'expo-router';
 
+// Define the UserProfile interface for type safety
 interface UserProfile {
   id: string;
   name: string;
@@ -24,7 +23,8 @@ interface UserProfile {
 const ProfileScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  // Mock user data
+
+  // Mock user data for demonstration purposes
   const profile: UserProfile = {
     id: 'USR123456',
     name: 'John Doe',
@@ -33,12 +33,12 @@ const ProfileScreen: React.FC = () => {
     licenseNumber: '123456789',
     licenseType: 'Class C',
     expiryDate: 'May 15, 2027',
-    avatarUrl: '@/assets/images/avatar.png', // You can replace with require(...) if needed
+    avatarUrl: '@/assets/images/avatar.png', // Replace with require(...) if needed
     vehicleCount: 2,
     joinedDate: 'Jan 2020',
   };
 
-  // Action handlers
+  // Action handlers for user interactions
   const handleEditProfile = () => {
     console.log('Navigate to edit profile');
   };
@@ -51,19 +51,17 @@ const ProfileScreen: React.FC = () => {
     console.log('Navigate to payment history');
   };
 
-    const handleLogout = async () => {
-      await dispatch(logout());
-      router.replace("/(auth)/login");
-    }
+  const handleLogout = async () => {
+    await dispatch(logout());
+    router.replace("/(auth)/login");
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      
-      
-      
+      {/* Scrollable content */}
       <ScrollView style={styles.scrollView}>
-        {/* Quick Actions */}
+        {/* Quick Actions Section */}
         <View style={styles.quickActions}>
           <TouchableOpacity 
             style={styles.actionButton}
@@ -85,7 +83,7 @@ const ProfileScreen: React.FC = () => {
         {/* Personal Information Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          
+          {/* Display user details */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Name</Text>
             <Text style={styles.infoValue}>{profile.name}</Text>
@@ -125,13 +123,12 @@ const ProfileScreen: React.FC = () => {
         {/* Vehicle Summary Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vehicle Summary</Text>
-          
+          {/* Display vehicle count */}
           <View style={styles.vehicleSummary}>
             <Text style={styles.vehicleCount}>{profile.vehicleCount}</Text>
             <Text style={styles.vehicleLabel}>
               {profile.vehicleCount === 1 ? 'Vehicle' : 'Vehicles'} Registered
             </Text>
-            
             <TouchableOpacity 
               style={styles.viewDetailsButton}
               onPress={handleViewVehicles}
@@ -145,7 +142,7 @@ const ProfileScreen: React.FC = () => {
         {/* History Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment History</Text>
-          
+          {/* Navigate to payment history */}
           <TouchableOpacity 
             style={styles.historyButton}
             onPress={handleViewHistory}
@@ -158,10 +155,9 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* App Version */}
+        {/* App Version and Logout */}
         <View style={styles.versionContainer}>
-        <Button title="Logout" onPress={handleLogout} />
-        <Text style={styles.historyButtonText}></Text>
+          <Button title="Logout" onPress={handleLogout} />
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
       </ScrollView>
@@ -171,6 +167,7 @@ const ProfileScreen: React.FC = () => {
 
 export default ProfileScreen;
 
+// Define color constants for consistent styling
 const COLORS = {
   primary: '#1E3A8A', // Deep Blue
   secondary: '#FACC15', // Bright Yellow
@@ -181,6 +178,7 @@ const COLORS = {
   text: '#1F2937', // Dark text for light mode
 };
 
+// Define styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

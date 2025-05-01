@@ -19,47 +19,56 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // Define the error state type
 interface FormErrors {
-  email?: string;
-  password?: string;
+  email?: string; // Optional error message for email
+  password?: string; // Optional error message for password
 }
 
 export default function LoginScreen() {
+  // State to store user credentials
   const [credentials, setCredentials] = useState<LoginRequest>({
-    username: "johnDoe",
-    password: "StrongPass123",
+    username: "JohnDoe", // Default username
+    password: "StrongPass123", // Default password
   });
 
+  // State to manage loading state during login
   const [loading, setLoading] = useState(false);
 
+  // Redux dispatch function to trigger actions
   const dispatch = useDispatch<AppDispatch>();
+  // Router for navigation
   const router = useRouter();
+  // Retrieve token and role from Redux store
   const token = useSelector((state: RootState) => state.auth.token);
   const role = useSelector((state: RootState) => state.auth.role);
 
+  // Function to handle login logic
   const handleLogin = async () => {
+    // Check if username and password are provided
     if (!credentials.username || !credentials.password) {
       Alert.alert("Error", "Please enter both username and password.");
       return;
     }
     try {
-      setLoading(true);
-      await dispatch(login(credentials)).unwrap();
+      setLoading(true); // Set loading state to true
+      await dispatch(login(credentials)).unwrap(); // Dispatch login action
     } catch (err: any) {
+      // Show error alert if login fails
       Alert.alert(
         "Login Failed",
         "Invalid credentials or something went wrong."
       );
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
+  // Effect to handle navigation based on token and role
   useEffect(() => {
     if (token) {
       if (role === "RIDER") {
-        router.replace("/(tabs)");
+        router.replace("/(tabs)"); // Navigate to rider's dashboard
       } else {
-        dispatch(logout());
+        dispatch(logout()); // Logout if role is not allowed
         Alert.alert(
           "Access Denied",
           "You do not have permission to access this app."
@@ -70,11 +79,14 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* App logo */}
       <Image
         source={require("../../assets/images/fine-logo.jpg")}
         style={styles.logo}
       />
+      {/* Login title */}
       <Text style={styles.title}>Login</Text>
+      {/* Username input field */}
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -84,6 +96,7 @@ export default function LoginScreen() {
         }
         autoCapitalize="none"
       />
+      {/* Password input field */}
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -93,6 +106,7 @@ export default function LoginScreen() {
         }
         secureTextEntry
       />
+      {/* Login button */}
       <TouchableOpacity
         style={styles.button}
         onPress={handleLogin}
@@ -104,6 +118,7 @@ export default function LoginScreen() {
   );
 }
 
+// Styles for the login screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
