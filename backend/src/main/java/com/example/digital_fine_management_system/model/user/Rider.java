@@ -12,3 +12,5 @@ public class Rider extends User {
     @Column(name = "license_id", unique = true, nullable = false)
     private String licenseId;
 }
+
+

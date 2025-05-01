@@ -99,8 +99,6 @@ const TransactionScreen: React.FC = () => {
         <View style={styles.transactionHistoryHeader}>
           <Text style={styles.sectionTitle}>Transaction History</Text>
           <TouchableOpacity style={styles.viewAllButton}>
-            <Text style={styles.viewAllText}>View All</Text>
-            <Icon name="chevron-down" size={16} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
         {transactions.map((transaction) => (

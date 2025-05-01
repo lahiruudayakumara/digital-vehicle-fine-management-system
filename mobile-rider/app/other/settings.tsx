@@ -9,9 +9,13 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
+  Linking,
 } from "react-native";
 import React, { useState } from "react";
 import styles from "./settingsStyles";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Define types for settings
 interface NotificationSettings {
@@ -26,6 +30,8 @@ interface UserPreferences {
 }
 
 const SettingsScreen: React.FC = () => {
+  const router = useRouter();
+  
   // State for user settings
   const [notifications, setNotifications] = useState<NotificationSettings>({
     paymentReminders: true,
@@ -58,23 +64,79 @@ const SettingsScreen: React.FC = () => {
 
   // Navigation/action handlers
   const handleAccountPress = () => {
-    console.log("Navigate to account details");
+    // Redirect to profile tab
+    router.push('/profile');
   };
 
   const handlePaymentMethodsPress = () => {
     console.log("Navigate to payment methods");
   };
 
-  const handleHelpPress = () => {
-    console.log("Navigate to help center");
+  const handleHelpPress = async () => {
+    // Open Intercom help center in external browser
+    const helpUrl = "https://intercom.help/finemate/en";
+    
+    try {
+      const canOpen = await Linking.canOpenURL(helpUrl);
+      if (canOpen) {
+        await Linking.openURL(helpUrl);
+      } else {
+        Alert.alert("Error", "Cannot open the help center URL");
+      }
+    } catch (error) {
+      console.error("Error opening help center URL:", error);
+      Alert.alert("Error", "Failed to open help center. Please try again later.");
+    }
   };
 
-  const handlePrivacyPress = () => {
-    console.log("Navigate to privacy policy");
+  const handlePrivacyPress = async () => {
+    // Open privacy policy in external browser
+    const privacyUrl = "https://intercom.help/finemate/en/articles/privacy-policy";
+    
+    try {
+      const canOpen = await Linking.canOpenURL(privacyUrl);
+      if (canOpen) {
+        await Linking.openURL(privacyUrl);
+      } else {
+        Alert.alert("Error", "Cannot open the privacy policy URL");
+      }
+    } catch (error) {
+      console.error("Error opening privacy policy URL:", error);
+      Alert.alert("Error", "Failed to open privacy policy. Please try again later.");
+    }
   };
 
-  const handleLogoutPress = () => {
-    console.log("User logout");
+  const handleLogoutPress = async () => {
+    try {
+      // Show confirmation dialog
+      Alert.alert(
+        "Logout Confirmation",
+        "Are you sure you want to logout?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Logout",
+            style: "destructive",
+            onPress: async () => {
+              // Clear user authentication data
+              await AsyncStorage.removeItem("userToken");
+              await AsyncStorage.removeItem("userData");
+              
+              console.log("User logged out successfully");
+              
+              // Redirect to login screen
+              router.replace("/(auth)/splash");
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error during logout:", error);
+      Alert.alert("Error", "Failed to log out. Please try again.");
+    }
   };
 
   return (
@@ -164,16 +226,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
 
-          <View style={styles.settingItem}>
-            <Text style={styles.settingLabel}>Dark Mode</Text>
-            <Switch
-              trackColor={{ false: "#DCDFE6", true: "#6C8EF2" }}
-              thumbColor={preferences.darkMode ? "#3A67F4" : "#f4f3f4"}
-              ios_backgroundColor="#DCDFE6"
-              onValueChange={() => toggleSetting("preferences", "darkMode")}
-              value={preferences.darkMode}
-            />
-          </View>
+          
 
           <View style={styles.settingItem}>
             <Text style={styles.settingLabel}>Use Biometrics</Text>

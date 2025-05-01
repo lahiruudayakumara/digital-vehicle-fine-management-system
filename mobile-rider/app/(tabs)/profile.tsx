@@ -27,10 +27,10 @@ const ProfileScreen: React.FC = () => {
   // Mock user data
   const profile: UserProfile = {
     id: 'USR123456',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '(555) 123-4567',
-    licenseNumber: '123456789',
+    name: 'Malmi Withanage',
+    email: 'malmi@gmail.com',
+    phone: '+94 77 123 65 41',
+    licenseNumber: '1234567890',
     licenseType: 'Class C',
     expiryDate: 'May 15, 2027',
     avatarUrl: '@/assets/images/avatar.png', // You can replace with require(...) if needed
@@ -48,37 +48,30 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleViewHistory = () => {
-    console.log('Navigate to payment history');
+    // Navigate to transactions tab
+    router.push('/transactions');
   };
 
-    const handleLogout = async () => {
-      await dispatch(logout());
-      router.replace("/(auth)/login");
-    }
+  const handleLogout = async () => {
+    await dispatch(logout());
+    router.replace("/(auth)/login");
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      
-      
       <ScrollView style={styles.scrollView}>
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={handleEditProfile}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.actionButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
+
           
           <TouchableOpacity 
             style={[styles.actionButton, styles.secondaryButton]}
             onPress={handleViewVehicles}
             activeOpacity={0.8}
           >
-            <Text style={styles.secondaryButtonText}>View Vehicles</Text>
+            <Text style={styles.secondaryButtonText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
         
@@ -131,14 +124,6 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.vehicleLabel}>
               {profile.vehicleCount === 1 ? 'Vehicle' : 'Vehicles'} Registered
             </Text>
-            
-            <TouchableOpacity 
-              style={styles.viewDetailsButton}
-              onPress={handleViewVehicles}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.viewDetailsText}>View Details</Text>
-            </TouchableOpacity>
           </View>
         </View>
         
@@ -160,8 +145,6 @@ const ProfileScreen: React.FC = () => {
 
         {/* App Version */}
         <View style={styles.versionContainer}>
-        <Button title="Logout" onPress={handleLogout} />
-        <Text style={styles.historyButtonText}></Text>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
       </ScrollView>
@@ -348,4 +331,3 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
 });
-

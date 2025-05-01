@@ -37,7 +37,15 @@ export default {
           backgroundColor: "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "@intercom/intercom-react-native",
+        {
+          "appId": "cqcr9vao",
+          "androidApiKey": "android_sdk-3cbff8d8931dbb8e5b99f7b607decdcafc8ac55b",
+          "iosApiKey": "ios_sdk-753cda7d838a9809af20954b4764982dd419a63c"
+        }
+      ]
     ],
     experiments: {
       typedRoutes: true

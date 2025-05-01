@@ -101,7 +101,6 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrValue, licenseNumber })
       {qrValue ? (
         <View style={styles.qrCodePlaceholder}>
           <QRCode value={qrValue} size={225} />
-          <Text style={styles.licenseNumber}>{licenseNumber}</Text>
           <Text style={styles.linkText}>{qrValue}</Text>
         </View>
       ) : (
