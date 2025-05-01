@@ -1,6 +1,10 @@
 //profile.tsx
 
-import { Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
+import XLSX from 'xlsx';
 
 import { AppDispatch } from '@/stores/store';
 import React from 'react';
@@ -46,6 +50,149 @@ const ProfileScreen: React.FC = () => {
   const handleViewVehicles = () => {
     console.log('Navigate to vehicles list');
   };
+  
+  const handleDownloadProfile = async () => {
+    try {
+      // First, ask for permissions
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'We need permission to save files to your device.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      
+      // Convert profile object to worksheet data
+      const wsData = [
+        ['Profile Information'],
+        ['ID', profile.id],
+        ['Name', profile.name],
+        ['Email', profile.email],
+        ['Phone', profile.phone],
+        ['License Number', profile.licenseNumber],
+        ['License Type', profile.licenseType],
+        ['Expiry Date', profile.expiryDate],
+        ['Vehicles Registered', profile.vehicleCount.toString()],
+        ['Joined Date', profile.joinedDate],
+      ];
+
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Profile');
+      
+      // Generate Excel file
+      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+      
+      // Create a meaningful filename with date
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const fileName = `profile_${profile.id}_${dateStr}.xlsx`;
+      
+      // First save to cache directory (which is always writable)
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      await FileSystem.writeAsStringAsync(fileUri, wbout, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      
+      console.log('Temp file created at:', fileUri);
+      
+      if (Platform.OS === 'android') {
+        try {
+          // Save the file to the media library
+          const asset = await MediaLibrary.createAssetAsync(fileUri);
+          console.log('Asset created:', asset);
+          
+          // Create a Downloads album if it doesn't exist and add the asset to it
+          try {
+            const album = await MediaLibrary.getAlbumAsync('Downloads');
+            
+            if (album === null) {
+              await MediaLibrary.createAlbumAsync('Downloads', asset, false);
+              console.log('Created new Downloads album with asset');
+            } else {
+              await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+              console.log('Added asset to existing Downloads album');
+            }
+            
+            Alert.alert(
+              'Success',
+              `File saved to your device's Downloads folder.`,
+              [{ text: 'OK' }]
+            );
+          } catch (albumError) {
+            console.error('Album creation error:', albumError);
+            
+            // If we can't create/use an album, the file is still saved to the media library
+            Alert.alert(
+              'Success',
+              `File saved to your device's media library.`,
+              [{ text: 'OK' }]
+            );
+          }
+        } catch (error) {
+          console.error('Android media library error:', error);
+          
+          // Fall back to sharing if media library fails
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              dialogTitle: 'Download Profile Information',
+              UTI: 'com.microsoft.excel.xlsx'
+            });
+            
+            Alert.alert(
+              'Alternative Method',
+              'Please use the "Save to Device" option in the sharing menu.',
+              [{ text: 'OK' }]
+            );
+          } else {
+            throw new Error('Unable to save or share file');
+          }
+        }
+      } else {
+        // iOS approach
+        const iosFileUri = `${FileSystem.documentDirectory}${fileName}`;
+        await FileSystem.copyAsync({
+          from: fileUri,
+          to: iosFileUri
+        });
+        
+        if (await Sharing.isAvailableAsync()) {
+          const userChoice = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              'File saved successfully!',
+              'Would you like to share it now?',
+              [
+                { text: 'No', onPress: () => resolve(false) },
+                { text: 'Yes', onPress: () => resolve(true) }
+              ]
+            );
+          });
+          
+          if (userChoice) {
+            await Sharing.shareAsync(iosFileUri, {
+              mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              dialogTitle: 'Share Profile Information',
+              UTI: 'com.microsoft.excel.xlsx'
+            });
+          }
+        } else {
+          Alert.alert('Success', `File saved in your app's documents folder.`);
+        }
+      }
+      
+      console.log('Profile information processed successfully');
+    } catch (error) {
+      console.error('Error saving profile information:', error);
+      Alert.alert('Error', 'Failed to save profile information. Please try again.');
+    }
+  };
 
   const handleViewHistory = () => {
     // Navigate to transactions tab
@@ -64,14 +211,13 @@ const ProfileScreen: React.FC = () => {
       <ScrollView style={styles.scrollView}>
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-
           
           <TouchableOpacity 
             style={[styles.actionButton, styles.secondaryButton]}
-            onPress={handleViewVehicles}
+            onPress={handleDownloadProfile}
             activeOpacity={0.8}
           >
-            <Text style={styles.secondaryButtonText}>Edit Profile</Text>
+            <Text style={styles.secondaryButtonText}>Download Profile Information</Text>
           </TouchableOpacity>
         </View>
         

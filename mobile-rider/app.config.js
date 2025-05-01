@@ -19,7 +19,12 @@ export default {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.anonymous.mobilerider"
+      package: "com.anonymous.mobilerider",
+      permissions: [
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "ACCESS_MEDIA_LOCATION"
+      ]
     },
     web: {
       bundler: "metro",
