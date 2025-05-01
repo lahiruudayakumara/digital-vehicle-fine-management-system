@@ -33,12 +33,7 @@ export default function RegisterScreen() {
       newErrors.fullName = "Full name is required";
     }
     
-    // Email validation
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
-    }
+    
     
     // Username validation
     if (!username) {
@@ -132,20 +127,20 @@ export default function RegisterScreen() {
         {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
         
         <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            if (errors.email) {
-              setErrors({ ...errors, email: undefined });
-            }
-          }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-        
+  style={styles.input}
+  placeholder="License Number"
+  value={email}
+  onChangeText={(text) => {
+    setEmail(text);  // Changed from setFullName to setEmail
+    if (errors.email) {
+      setErrors({ ...errors, email: undefined });
+    }
+  }}
+  keyboardType="numeric"  // Use numeric keyboard for license numbers
+  maxLength={10}  // Limit to 10 characters
+/>
+{errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
         <TextInput
           style={styles.input}
           placeholder="Username"
