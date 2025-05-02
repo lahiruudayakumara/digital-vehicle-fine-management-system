@@ -16,6 +16,7 @@ import { StatusBar } from "expo-status-bar";
 import { store } from "@/stores/store";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFonts } from "expo-font";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -72,6 +73,7 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
+      <StripeProvider publishableKey="pk_test_51OtQDcKmN4rKDMw5InPOBErEWzcKBY3WiASv9jdwtea3AT7nonP0rRAMzDShwmz3Z6NEAhXl1Ls3jWPjbfp5gOVS00hNEQtC2f">
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -80,6 +82,10 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
+      </StripeProvider>
     </Provider>
   );
 }
+
+
+// http://192.168.1.14:8082/api/payment/create-token

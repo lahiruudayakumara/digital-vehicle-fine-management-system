@@ -1,8 +1,8 @@
 export interface PaymentEntry {
-    id: string;
-    name: string;
+    paymentId: string;
+    fineId: string;
     amount: number;
-    date: string;
-    method: "Credit Card" | "Bank Slip" | "Online Payment";
-    status: "Completed" | "Pending" | "Failed" | "Refunded";
+    paymentDate: string;
+    method: "Credit Card" | "SLIP" | "Online Payment";
+    status: "AAPROVED" | "PENDING" | "Failed" | "Refunded";
 }
