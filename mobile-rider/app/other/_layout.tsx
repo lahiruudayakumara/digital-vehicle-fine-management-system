@@ -11,6 +11,7 @@ export default function OtherLayout() {
 
   return (
     <>
+      {/* Stack Navigator for managing screens */}
       <Stack
         screenOptions={{
           headerStyle: {
@@ -21,27 +22,28 @@ export default function OtherLayout() {
             fontWeight: "bold",
           },
           headerTitle: "FineMate",
-          // This hides the parent header that's showing "(other)"
+          // This ensures the parent header is shown
           headerShown: true,
         }}
       >
+        {/* Screen for the index route */}
         <Stack.Screen
           name="index"
           options={{
-            headerShown: false,
+            headerShown: false, // Hides the header for the index screen
           }}
         />
+        {/* Screen for the settings route */}
         <Stack.Screen
           name="settings"
           options={{
             title: "Settings",
-            // Make sure this is true to show the Settings header
-            headerShown: true,
+            headerShown: true, // Ensures the header is shown for settings
           }}
         />
       </Stack>
 
-      {/* Custom Tab Bar */}
+      {/* Custom Tab Bar for navigation */}
       <View
         style={{
           flexDirection: "row",
@@ -57,6 +59,7 @@ export default function OtherLayout() {
           justifyContent: "space-around",
         }}
       >
+        {/* Tab for Home */}
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/")}
@@ -66,6 +69,8 @@ export default function OtherLayout() {
             Home
           </Text>
         </TouchableOpacity>
+
+        {/* Tab for Fines */}
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/fines")}
@@ -75,6 +80,8 @@ export default function OtherLayout() {
             Fines
           </Text>
         </TouchableOpacity>
+
+        {/* Tab for QR Code */}
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/qrcode")}
@@ -84,17 +91,19 @@ export default function OtherLayout() {
             QR Code
           </Text>
         </TouchableOpacity>
+
+        {/* Tab for Transactions */}
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/(tabs)/transactions")}
         >
           <FeatherIcons name="credit-card" color="gray" size={24} />
           <Text style={{ fontSize: 10, color: "gray", marginTop: 2 }}>
-          Transactions
+            Transactions
           </Text>
         </TouchableOpacity>
 
-
+        {/* Tab for Profile */}
         <TouchableOpacity
           style={{ alignItems: "center", flex: 1 }}
           onPress={() => router.push("/profile")}

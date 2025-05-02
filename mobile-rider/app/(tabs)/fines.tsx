@@ -32,7 +32,7 @@ const FineListItem: React.FC<{
 }> = ({ fine, onPress, isExpanded }) => {
   const router = useRouter();
 
-  // Determine status color and icon name
+  // Determine status color and icon name based on fine status
   let statusColor, statusIconName;
   switch (fine.status) {
     case "paid":
@@ -52,11 +52,13 @@ const FineListItem: React.FC<{
 
   return (
     <View style={[styles.fineCard]}>
+      {/* Header section of the fine card */}
       <TouchableOpacity
         style={styles.fineCardHeader}
         onPress={onPress}
         activeOpacity={0.7}
       >
+        {/* Status indicator and fine details */}
         <View style={styles.fineCardHeaderContent}>
           <View
             style={[
@@ -74,6 +76,7 @@ const FineListItem: React.FC<{
           </View>
         </View>
 
+        {/* Expand/collapse icon */}
         <Icon
           name={isExpanded ? "chevron-up" : "chevron-down"}
           size={20}
@@ -81,8 +84,10 @@ const FineListItem: React.FC<{
         />
       </TouchableOpacity>
 
+      {/* Expanded details section */}
       {isExpanded && (
         <View style={styles.fineCardDetail}>
+          {/* Fine details rows */}
           <View style={styles.fineCardDetailRow}>
             <Text style={styles.fineCardDetailLabel}>Fine ID:</Text>
             <Text style={styles.fineCardDetailValue}>{fine.id}</Text>
@@ -133,6 +138,7 @@ const FineListItem: React.FC<{
 
           {fine.status === "unpaid" && (
             <View style={styles.fineCardActions}>
+              {/* Pay Now button */}
               <TouchableOpacity
                 style={[
                   styles.fineCardButton,
@@ -144,6 +150,7 @@ const FineListItem: React.FC<{
                 <Text style={styles.fineCardButtonText}>Pay Now</Text>
               </TouchableOpacity>
 
+              {/* Appeal button */}
               <TouchableOpacity
                 style={[styles.fineCardButton, styles.fineCardButtonOutline]}
                 activeOpacity={0.8}
@@ -194,6 +201,7 @@ const FilterChip: React.FC<{
       onPress={onPress}
       activeOpacity={0.7}
     >
+      {/* Filter chip label */}
       <Text
         style={[
           styles.filterChipText,
@@ -207,7 +215,7 @@ const FilterChip: React.FC<{
   );
 };
 
-// Empty state component
+// Empty state component for when no fines are available
 const EmptyState: React.FC<{ message: string }> = ({ message }) => {
   return (
     <View style={styles.emptyState}>
@@ -289,6 +297,7 @@ const FinesScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterContent}
         >
+          {/* Filter chip for each status */}
           <FilterChip
             label="All"
             isActive={filter === "all"}
@@ -341,7 +350,8 @@ const FinesScreen: React.FC = () => {
 
 export default FinesScreen;
 
- const COLORS = {
+// Color palette for the app
+const COLORS = {
   primary: '#1E3A8A', // Deep Blue
   secondary: '#FACC15', // Bright Yellow
   accent: '#DC2626', // Traffic Red
@@ -353,11 +363,11 @@ export default FinesScreen;
   textLight: '#F9FAFB', // Light text for dark mode
 };
 
- const styles = StyleSheet.create({
+// Styles for the screen and components
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    
   },
   header: {
     flexDirection: 'row',
@@ -375,7 +385,6 @@ export default FinesScreen;
   finesList: {
     flex: 1,
     padding: 16,
-    
   },
   fineCard: {
     backgroundColor: COLORS.white,

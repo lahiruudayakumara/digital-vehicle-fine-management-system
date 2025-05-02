@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 
 import { Provider } from "react-redux";
 import { StatusBar } from "expo-status-bar";
+import TokenRefreshChecker from "@/hooks/use-token-refresh";
 import { store } from "@/stores/store";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFonts } from "expo-font";
@@ -80,6 +81,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
+        <TokenRefreshChecker />
         <StatusBar style="auto" />
       </ThemeProvider>
       </StripeProvider>

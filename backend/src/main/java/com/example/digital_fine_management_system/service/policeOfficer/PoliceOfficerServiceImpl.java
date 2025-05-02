@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,7 +26,17 @@ public class PoliceOfficerServiceImpl implements PoliceOfficerService {
 
     @Override
     public List<PoliceOfficerResponseDTO> getAllPoliceOfficers() {
-        return policeOfficerRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        return policeOfficerRepository.findAll()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public PoliceOfficerResponseDTO getPoliceOfficerById(String badgeID) {
+        PoliceOfficer officer = policeOfficerRepository.findByBadgeID(badgeID)
+                .orElseThrow(() -> new RuntimeException("Police officer not found with Badge ID: " + badgeID));
+        return convertToDTO(officer);
     }
 
     @Override
@@ -33,7 +44,24 @@ public class PoliceOfficerServiceImpl implements PoliceOfficerService {
         PoliceOfficer officer = policeOfficerRepository.findByBadgeID(badgeID)
                 .orElseThrow(() -> new RuntimeException("Police officer not found with Badge ID: " + badgeID));
 
-        // Update fields (excluding Badge ID)
+        // Update fields only if they are not null (supports PATCH)
+        Optional.ofNullable(updateDTO.getFullName()).ifPresent(officer::setFullName);
+        Optional.ofNullable(updateDTO.getUsername()).ifPresent(officer::setUsername);
+        Optional.ofNullable(updateDTO.getEmail()).ifPresent(officer::setEmail);
+        Optional.ofNullable(updateDTO.getPassword()).ifPresent(officer::setPassword);
+        Optional.ofNullable(updateDTO.getAddress()).ifPresent(officer::setAddress);
+        Optional.ofNullable(updateDTO.getTelephoneNumber()).ifPresent(officer::setTelephone);
+        Optional.ofNullable(updateDTO.getPatrolLocations())
+                .ifPresent(locations -> officer.setPatrolLocations(String.join(", ", locations)));
+
+        policeOfficerRepository.save(officer);
+        return convertToDTO(officer);
+    }
+
+    @Override
+    public void replacePoliceOfficer(String badgeID, PoliceOfficerUpdateDTO updateDTO) {
+        PoliceOfficer officer = new PoliceOfficer();
+        officer.setBadgeID(badgeID);
         officer.setFullName(updateDTO.getFullName());
         officer.setUsername(updateDTO.getUsername());
         officer.setEmail(updateDTO.getEmail());
@@ -43,12 +71,6 @@ public class PoliceOfficerServiceImpl implements PoliceOfficerService {
         officer.setPatrolLocations(String.join(", ", updateDTO.getPatrolLocations()));
 
         policeOfficerRepository.save(officer);
-        return convertToDTO(officer);
-    }
-
-    @Override
-    public void replacePoliceOfficer(String badgeID, PoliceOfficerUpdateDTO updateDTO) {
-        updatePoliceOfficer(badgeID, updateDTO); // Calls update method (same logic)
     }
 
     @Override
@@ -56,7 +78,7 @@ public class PoliceOfficerServiceImpl implements PoliceOfficerService {
         PoliceOfficer officer = policeOfficerRepository.findByBadgeID(badgeID)
                 .orElseThrow(() -> new RuntimeException("Police Officer not found with Badge ID: " + badgeID));
 
-        // Delete User record first (to maintain data integrity)
+        // Ensure user record is deleted before deleting officer to maintain data integrity
         userRepository.deleteById(officer.getId());
         policeOfficerRepository.delete(officer);
     }
@@ -65,9 +87,13 @@ public class PoliceOfficerServiceImpl implements PoliceOfficerService {
         return PoliceOfficerResponseDTO.builder()
                 .badgeID(officer.getBadgeID())
                 .fullName(officer.getFullName())
+                .email(officer.getEmail()) // Add email to the DTO
                 .address(officer.getAddress())
                 .telephone(officer.getTelephone())
-                .patrolLocations(List.of(officer.getPatrolLocations().split(", ")))
+                .patrolLocations(officer.getPatrolLocations() != null
+                        ? List.of(officer.getPatrolLocations().split(", "))
+                        : List.of())
                 .build();
     }
+
 }

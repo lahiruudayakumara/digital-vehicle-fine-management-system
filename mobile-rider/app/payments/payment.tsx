@@ -89,16 +89,22 @@ const PaymentsScreen: React.FC = () => {
     setCardCvc(cleaned);
   };
 
+  // Function to handle changes in the cardholder name input field.
+  // It ensures only alphabetic characters and spaces are allowed.
   const handleCardNameChange = (text: string) => {
     let cleaned = text.replace(/[^a-zA-Z\s]/g, "");
     setCardName(cleaned);
   };
 
+  // Function to request permission to access the media library.
+  // Returns true if permission is granted, otherwise false.
   const requestPermission = async () => {
     const { status } = await requestMediaLibraryPermissionsAsync();
     return status === "granted";
   };
 
+  // Function to handle the upload of a payment receipt image.
+  // It checks for media library permissions, validates the file size, and sets the uploaded receipt URI.
   const handleUploadReceipt = async () => {
     const permissionGranted = await requestPermission();
 
@@ -128,6 +134,7 @@ const PaymentsScreen: React.FC = () => {
     }
   };
 
+  // Function to remove the uploaded receipt by resetting the state.
   const handleRemoveReceipt = () => {
     setUploadedReceipt(null);
   };

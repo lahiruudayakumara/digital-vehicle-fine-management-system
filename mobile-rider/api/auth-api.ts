@@ -1,0 +1,23 @@
+import * as SecureStore from "expo-secure-store";
+
+import { AuthResponse, LoginRequest, RegisterRequest } from "@/types/auth-types";
+
+import API from "./api-instance";
+
+export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse> => {
+  const response = await API.post<AuthResponse>("/auth/login", credentials);
+  return response.data;
+};
+
+export const registerUser = async (userData: RegisterRequest): Promise<AuthResponse> => {
+  const response = await API.post<AuthResponse>("/auth/register", userData);
+  return response.data;
+};
+
+export const refreshToken = async (): Promise<AuthResponse> => {
+  const refreshToken = await SecureStore.getItemAsync("refreshToken");
+  const response = await API.post<AuthResponse>("/auth/refresh-token", {
+    refreshToken: `${refreshToken}`,
+  });
+  return response.data;
+};
