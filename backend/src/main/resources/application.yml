@@ -30,3 +30,7 @@ allowed:
     web: ${ALLOWED_ORIGINS_WEB}
     expo-officer: ${ALLOWED_ORIGINS_EXPO_OFFICER}
     expo-rider: ${ALLOWED_ORIGINS_EXPO_RIDER}
+
+stripe:
+  secret_key: ${STRIPE_SECRET_KEY}
+
