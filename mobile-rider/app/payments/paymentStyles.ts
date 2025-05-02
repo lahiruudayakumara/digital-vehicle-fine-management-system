@@ -59,13 +59,13 @@ const styles = StyleSheet.create({
   },
   paymentMethodsRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap: 16,
   },
   paymentMethodCard: {
     backgroundColor: COLORS.white,
     borderRadius: 5,
     padding: 16,
-    width: "31%",
+    width: "48%",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -251,6 +251,10 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginTop: 12,
     textAlign: "center",
+  },
+  cardField: {
+    height: 50,
+    marginBottom: 20,
   },
 });
 

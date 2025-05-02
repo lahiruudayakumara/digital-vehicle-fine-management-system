@@ -1,5 +1,6 @@
 import {
   Alert,
+  Button,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -18,7 +19,17 @@ import { X } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import styles from "./paymentStyles";
 import { formatCardExpiry, formatCardNumber } from "@/validation/payment";
-import { launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
+import {
+  launchImageLibraryAsync,
+  MediaTypeOptions,
+  requestMediaLibraryPermissionsAsync,
+} from "expo-image-picker";
+import {
+  CardField,
+  CardFieldInput,
+  useConfirmPayment,
+  useStripe,
+} from "@stripe/stripe-react-native";
 
 const PaymentMethodCard: React.FC<{
   title: string;
@@ -46,16 +57,20 @@ const PaymentMethodCard: React.FC<{
 };
 
 const PaymentsScreen: React.FC = () => {
-  const [paymentMethod, setPaymentMethod] = useState<
-    "card" | "bank" | "wallet"
-  >("card");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank">("card");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+  const [name, setName] = useState("");
+  const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(
+    null
+  );
   const [cardName, setCardName] = useState("");
   const [uploadedReceipt, setUploadedReceipt] = useState<string | null>(null);
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
   const router = useRouter();
+  const { confirmPayment } = useConfirmPayment();
+  const stripe = useStripe();
 
   const handleCardNumberChange = (text: string) => {
     const formattedCardNumber = formatCardNumber(text);
@@ -85,7 +100,7 @@ const PaymentsScreen: React.FC = () => {
   // Returns true if permission is granted, otherwise false.
   const requestPermission = async () => {
     const { status } = await requestMediaLibraryPermissionsAsync();
-    return status === 'granted';
+    return status === "granted";
   };
 
   // Function to handle the upload of a payment receipt image.
@@ -94,19 +109,25 @@ const PaymentsScreen: React.FC = () => {
     const permissionGranted = await requestPermission();
 
     if (!permissionGranted) {
-      console.log('Permission to access media library denied');
+      console.log("Permission to access media library denied");
       return;
     }
 
-    // Launch image picker
     const result = await launchImageLibraryAsync({
       mediaTypes: MediaTypeOptions.Images,
       quality: 0.8,
     });
 
     if (!result.canceled) {
-      if (result.assets && result.assets[0]?.fileSize && result.assets[0].fileSize > MAX_FILE_SIZE) {
-        Alert.alert('File too large', 'The selected image exceeds the 10MB size limit. Please select a smaller image.');
+      if (
+        result.assets &&
+        result.assets[0]?.fileSize &&
+        result.assets[0].fileSize > MAX_FILE_SIZE
+      ) {
+        Alert.alert(
+          "File too large",
+          "The selected image exceeds the 10MB size limit. Please select a smaller image."
+        );
         return;
       }
       setUploadedReceipt(result.assets[0].uri);
@@ -118,64 +139,95 @@ const PaymentsScreen: React.FC = () => {
     setUploadedReceipt(null);
   };
 
+  const handlePayPress = async () => {
+    // 1. Create PaymentIntent on your backend
+    const response = await fetch(
+      `http://192.168.1.14:8082/api/payment/create-token`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 1099 }), // amount in cents
+      }
+    );
+    const { clientSecret } = await response.json();
+
+    if (!clientSecret) {
+      Alert.alert("Failed to get client secret");
+      return;
+    }
+
+    // 2. Confirm the payment
+    const { paymentIntent, error } = await confirmPayment(clientSecret, {
+      paymentMethodType: "Card",
+      paymentMethodData: {
+        billingDetails: { name: "Test User" },
+      },
+    });
+
+    if (error) {
+      Alert.alert(`Payment failed: ${error.message}`);
+    } else if (paymentIntent) {
+      Alert.alert(
+        "Payment successful",
+        `PaymentIntent status: ${paymentIntent.status}`
+      );
+    }
+  };
+
+  const handleSubmitRecipt = async () => {
+    if (!uploadedReceipt) {
+      Alert.alert("Please upload a receipt before submitting.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", {
+      uri: uploadedReceipt,
+      name: `receipt-${Date.now()}.jpg`,
+      type: "image/jpeg",
+    } as any);
+    formData.append("fineId", "F-20250315-001"); // Replace with the actual fine ID
+    formData.append("amount", "4500.00"); // Replace with the actual payment ID
+
+
+    const fineId = "F-20250315-001"; // Replace with the actual fine ID
+
+    const response = await fetch(
+      `http://192.168.1.14:8082/api/payment/upload-receipt/${fineId}`, // Use fineId instead of paymentId
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (response.ok) {
+      Alert.alert("Receipt uploaded successfully!");
+    } else {
+      Alert.alert("Failed to upload receipt. Please try again.");
+    }
+  }
+
   const renderPaymentForm = () => {
     switch (paymentMethod) {
       case "card":
         return (
           <View style={styles.paymentForm}>
-            <Text style={styles.paymentFormLabel}>Card Details</Text>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Card Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="1234 5678 9012 3456"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-                value={cardNumber}
-                onChangeText={handleCardNumberChange}
-              />
-            </View>
-            <View style={styles.horizontalInputs}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                <Text style={styles.inputLabel}>Expiry Date</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="MM/YY"
-                  placeholderTextColor="#9CA3AF"
-                  value={cardExpiry}
-                  keyboardType="numeric"
-                  onChangeText={handleExpiryChange}
-                />
-              </View>
-              <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.inputLabel}>CVC</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="123"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  secureTextEntry
-                  value={cardCvc}
-                  onChangeText={handleCardCvcChange}
-                />
-              </View>
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Cardholder Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="John Doe"
-                placeholderTextColor="#9CA3AF"
-                value={cardName}
-                onChangeText={handleCardNameChange}
-              />
-            </View>
-            <TouchableOpacity
-              style={[styles.payButton, { backgroundColor: COLORS.primary }]}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.payButtonText}>Pay Now</Text>
-            </TouchableOpacity>
+            <CardField
+              postalCodeEnabled={true}
+              placeholders={{ number: "4242 4242 4242 4242" }}
+              cardStyle={{}}
+              style={{
+                width: "100%",
+                height: 50,
+                marginVertical: 30,
+              }}
+              onCardChange={(card) => setCardDetails(card)}
+            />
+            <Button
+              title="Pay"
+              onPress={handlePayPress}
+              disabled={!cardDetails?.complete}
+            />
           </View>
         );
 
@@ -212,7 +264,11 @@ const PaymentsScreen: React.FC = () => {
             </View>
             <View style={styles.uploadSection}>
               <Text style={styles.uploadTitle}>Upload Payment Receipt</Text>
-              <TouchableOpacity style={styles.uploadButton} onPress={handleUploadReceipt} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={handleUploadReceipt}
+                activeOpacity={0.7}
+              >
                 <Icon name="upload" size={24} color={COLORS.text} />
                 <Text style={styles.uploadButtonText}>
                   {uploadedReceipt ? "Change Receipt" : "Upload Receipt"}
@@ -227,13 +283,17 @@ const PaymentsScreen: React.FC = () => {
                   />
                   <View style={styles.receiptInfo}>
                     <Text style={styles.receiptName}>Receipt-12345.jpg</Text>
-                    <TouchableOpacity onPress={handleRemoveReceipt} activeOpacity={0.7}>
+                    <TouchableOpacity
+                      onPress={handleRemoveReceipt}
+                      activeOpacity={0.7}
+                    >
                       <Text style={styles.removeReceipt}>Remove</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               )}
               <TouchableOpacity
+                onPress={handleSubmitRecipt}
                 style={[styles.payButton, { backgroundColor: COLORS.primary }]}
                 activeOpacity={0.8}
               >
@@ -243,52 +303,52 @@ const PaymentsScreen: React.FC = () => {
           </View>
         );
 
-      case "wallet":
-        return (
-          <View style={styles.paymentForm}>
-            <Text style={styles.paymentFormLabel}>Digital Wallet</Text>
-            <View style={styles.walletSelection}>
-              <Text style={styles.walletTitle}>Select a wallet</Text>
-              <TouchableOpacity style={styles.walletOption} activeOpacity={0.7}>
-                <Image
-                  source={{
-                    uri: "https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png",
-                  }}
-                  style={styles.walletLogo}
-                  resizeMode="contain"
-                />
-                <Text style={styles.walletName}>Lanka QR</Text>
-                <Icon name="arrow-right" size={18} color={COLORS.text} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.walletOption} activeOpacity={0.7}>
-                <Image
-                  source={{
-                    uri: "https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png",
-                  }}
-                  style={styles.walletLogo}
-                  resizeMode="contain"
-                />
-                <Text style={styles.walletName}>FriMi</Text>
-                <Icon name="arrow-right" size={18} color={COLORS.text} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.walletOption} activeOpacity={0.7}>
-                <Image
-                  source={{
-                    uri: "https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png",
-                  }}
-                  style={styles.walletLogo}
-                  resizeMode="contain"
-                />
-                <Text style={styles.walletName}>DCSL Pay</Text>
-                <Icon name="arrow-right" size={18} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.walletNote}>
-              You will be redirected to the selected wallet app to complete the
-              payment
-            </Text>
-          </View>
-        );
+      // case "wallet":
+      //   return (
+      //     <View style={styles.paymentForm}>
+      //       <Text style={styles.paymentFormLabel}>Digital Wallet</Text>
+      //       <View style={styles.walletSelection}>
+      //         <Text style={styles.walletTitle}>Select a wallet</Text>
+      //         <TouchableOpacity style={styles.walletOption} activeOpacity={0.7}>
+      //           <Image
+      //             source={{
+      //               uri: "https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png",
+      //             }}
+      //             style={styles.walletLogo}
+      //             resizeMode="contain"
+      //           />
+      //           <Text style={styles.walletName}>Lanka QR</Text>
+      //           <Icon name="arrow-right" size={18} color={COLORS.text} />
+      //         </TouchableOpacity>
+      //         <TouchableOpacity style={styles.walletOption} activeOpacity={0.7}>
+      //           <Image
+      //             source={{
+      //               uri: "https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png",
+      //             }}
+      //             style={styles.walletLogo}
+      //             resizeMode="contain"
+      //           />
+      //           <Text style={styles.walletName}>FriMi</Text>
+      //           <Icon name="arrow-right" size={18} color={COLORS.text} />
+      //         </TouchableOpacity>
+      //         <TouchableOpacity style={styles.walletOption} activeOpacity={0.7}>
+      //           <Image
+      //             source={{
+      //               uri: "https://placeholder.com/wp-content/uploads/2018/10/placeholder.com-logo1.png",
+      //             }}
+      //             style={styles.walletLogo}
+      //             resizeMode="contain"
+      //           />
+      //           <Text style={styles.walletName}>DCSL Pay</Text>
+      //           <Icon name="arrow-right" size={18} color={COLORS.text} />
+      //         </TouchableOpacity>
+      //       </View>
+      //       <Text style={styles.walletNote}>
+      //         You will be redirected to the selected wallet app to complete the
+      //         payment
+      //       </Text>
+      //     </View>
+      //   );
 
       default:
         return null;
@@ -356,7 +416,7 @@ const PaymentsScreen: React.FC = () => {
                 isActive={paymentMethod === "bank"}
                 onPress={() => setPaymentMethod("bank")}
               />
-              <PaymentMethodCard
+              {/* <PaymentMethodCard
                 title="Wallet"
                 icon={
                   <Icon
@@ -367,7 +427,7 @@ const PaymentsScreen: React.FC = () => {
                 }
                 isActive={paymentMethod === "wallet"}
                 onPress={() => setPaymentMethod("wallet")}
-              />
+              /> */}
             </View>
           </View>
 
