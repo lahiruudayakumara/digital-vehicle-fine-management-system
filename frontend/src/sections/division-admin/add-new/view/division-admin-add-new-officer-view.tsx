@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@/stores/store';
 import { registerPoliceOfficer } from '@/stores/slices/auth/auth-actions';
@@ -23,33 +23,121 @@ const AddNewOfficerView = () => {
         selectedLocation: ""
     });
 
-    const [errors, setErrors] = useState({
-        badgeID: "",
-        fullName: "",
-        telephone: "",
-        email: "",
-        address: "",
-        password: "",
-        confirmPassword: "",
-        patrolLocations: "",
-        selectedLocation: ""
-    });
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+    const [touchedFields, setTouchedFields] = useState<{ [key: string]: boolean }>({});
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
+    // Field validation functions
+    const validateField = (name: string, value: string | string[]): string => {
+        switch (name) {
+            case "badgeID":
+                if (!value) return "Badge ID is required";
+                if (typeof value === 'string' && !/^[a-zA-Z0-9]+$/.test(value)) return "Badge ID must be alphanumeric";
+                if (typeof value === 'string' && (value.length < 3 || value.length > 10)) return "Badge ID must be between 3 and 10 characters";
+                return "";
+            
+            case "fullName":
+                if (!value) return "Name is required";
+                if (typeof value === 'string' && value.length < 3) return "Name must be at least 3 characters";
+                if (typeof value === 'string' && value.length > 50) return "Name cannot exceed 50 characters";
+                if (typeof value === 'string' && !/^[a-zA-Z\s.]+$/.test(value)) return "Name can only contain letters, spaces, and periods";
+                return "";
+            
+            case "telephone":
+                if (!value) return "Phone number is required";
+                if (typeof value === 'string' && !/^\d{10}$/.test(value)) return "Phone number must be 10 digits";
+                return "";
+            
+            case "email":
+                if (!value) return "Email is required";
+                if (typeof value === 'string' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Email format is invalid";
+                return "";
+            
+            case "address":
+                if (!value) return "Address is required";
+                if (typeof value === 'string' && value.length < 5) return "Address must be at least 5 characters";
+                return "";
+            
+            case "password":
+                if (!value) return "Password is required";
+                if (typeof value === 'string' && value.length < 8) return "Password must be at least 8 characters";
+                if (typeof value === 'string' && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) 
+                    return "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+                return "";
+            
+            case "confirmPassword":
+                if (!value) return "Please confirm your password";
+                if (value !== formData.password) return "Passwords do not match";
+                return "";
+            
+            case "patrolLocations":
+                if (Array.isArray(value) && value.length === 0) return "At least one patrol location is required";
+                return "";
+            
+            default:
+                return "";
+        }
+    };
+
+    // Validate all fields in the current step
+    const validateCurrentStep = () => {
+        const fieldsToValidate = step === 1 
+            ? ["badgeID", "fullName", "telephone", "email", "address"] 
+            : ["password", "confirmPassword", "patrolLocations"];
+        
+        let newErrors: { [key: string]: string } = {};
+        let isValid = true;
+
+        fieldsToValidate.forEach(field => {
+            const value = field === "patrolLocations" ? formData.patrolLocations : formData[field as keyof typeof formData];
+            const error = validateField(field, value as string | string[]);
+            if (error) {
+                newErrors[field] = error;
+                isValid = false;
+            }
+        });
+
+        setFormErrors(prev => ({ ...prev, ...newErrors }));
+        
+        // Mark all fields in this step as touched
+        const touchedFieldsUpdate = fieldsToValidate.reduce((acc, field) => {
+            acc[field] = true;
+            return acc;
+        }, {} as { [key: string]: boolean });
+        
+        setTouchedFields(prev => ({ ...prev, ...touchedFieldsUpdate }));
+
+        return isValid;
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData((prevData) => ({ ...prevData, [name]: value }));
-        setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        
+        // Mark field as touched
+        setTouchedFields(prev => ({ ...prev, [name]: true }));
+        
+        // Validate field on change
+        const error = validateField(name, value);
+        setFormErrors(prev => ({ ...prev, [name]: error }));
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        
+        // Mark field as touched
+        setTouchedFields(prev => ({ ...prev, [name]: true }));
+        
+        // Validate field on blur
+        const error = validateField(name, value);
+        setFormErrors(prev => ({ ...prev, [name]: error }));
     };
 
     const handleNext = () => {
-        const newErrors = validateStep1();
-        if (Object.keys(newErrors).length === 0) {
+        if (validateCurrentStep()) {
             setStep(2);
-        } else {
-            setErrors(newErrors);
         }
     };
 
@@ -58,8 +146,7 @@ const AddNewOfficerView = () => {
     };
 
     const handleSubmit = async () => {
-        const newErrors = validateStep2();
-        if (Object.keys(newErrors).length === 0) {
+        if (validateCurrentStep()) {
             setIsLoading(true);
             try {
                 const officerData = {
@@ -82,37 +169,7 @@ const AddNewOfficerView = () => {
             } finally {
                 setIsLoading(false);
             }
-        } else {
-            setErrors(newErrors);
         }
-    };
-
-    const validateStep1 = () => {
-        const errors: any = {};
-        if (!formData.badgeID) errors.badgeID = "Badge ID is required";
-        if (!/^[a-zA-Z0-9]+$/.test(formData.badgeID)) errors.badgeID = "Badge ID must be alphanumeric";
-        
-        if (!formData.fullName) errors.fullName = "Officer Name is required";
-        if (!/^[a-zA-Z\s]+$/.test(formData.fullName)) errors.fullName = "Officer Name can only contain letters and spaces";
-        
-        if (!formData.telephone) errors.telephone = "Mobile Phone is required";
-        if (!/^\d{10}$/.test(formData.telephone)) errors.telephone = "Mobile Phone must be exactly 10 digits";
-        
-        if (!formData.email) errors.email = "Email is required";
-        if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Email is invalid";
-        
-        if (!formData.address) errors.address = "Address is required";
-        if (!/^[a-zA-Z0-9\s,.'-]+$/.test(formData.address)) errors.address = "Address can only contain letters, numbers, and spaces";
-        
-        return errors;
-    };
-
-    const validateStep2 = () => {
-        const errors: any = {};
-        if (!formData.password) errors.password = "Password is required";
-        if (formData.password !== formData.confirmPassword) errors.confirmPassword = "Passwords do not match";
-        if (formData.patrolLocations.length === 0) errors.patrolLocations = "At least one patrol location must be selected";
-        return errors;
     };
 
     const togglePasswordVisibility = () => {
@@ -124,29 +181,40 @@ const AddNewOfficerView = () => {
     };
 
     const handlePatrolLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFormData((prevData) => ({
-            ...prevData,
+        setFormData(prev => ({
+            ...prev,
             selectedLocation: e.target.value,
         }));
-        setErrors((prevErrors) => ({ ...prevErrors, selectedLocation: "" }));
     };
 
     const addPatrolLocation = () => {
         const { selectedLocation, patrolLocations } = formData;
         if (selectedLocation && !patrolLocations.includes(selectedLocation)) {
-            setFormData((prevData) => ({
-                ...prevData,
-                patrolLocations: [...patrolLocations, selectedLocation],
+            const newPatrolLocations = [...patrolLocations, selectedLocation];
+            setFormData(prev => ({
+                ...prev,
+                patrolLocations: newPatrolLocations,
                 selectedLocation: ""
             }));
+            
+            // Validate patrol locations
+            setTouchedFields(prev => ({ ...prev, patrolLocations: true }));
+            const error = validateField("patrolLocations", newPatrolLocations);
+            setFormErrors(prev => ({ ...prev, patrolLocations: error }));
         }
     };
 
     const removePatrolLocation = (location: string) => {
-        setFormData((prevData) => ({
-            ...prevData,
-            patrolLocations: prevData.patrolLocations.filter((item) => item !== location),
+        const newPatrolLocations = formData.patrolLocations.filter(item => item !== location);
+        setFormData(prev => ({
+            ...prev,
+            patrolLocations: newPatrolLocations,
         }));
+        
+        // Validate patrol locations after removal
+        setTouchedFields(prev => ({ ...prev, patrolLocations: true }));
+        const error = validateField("patrolLocations", newPatrolLocations);
+        setFormErrors(prev => ({ ...prev, patrolLocations: error }));
     };
 
     const malabeLocations = [
@@ -173,7 +241,7 @@ const AddNewOfficerView = () => {
                                     Personal Information
                                 </button>
                                 <button
-                                    onClick={() => setStep(2)}
+                                    onClick={() => validateCurrentStep() && setStep(2)}
                                     className={`px-4 py-2 text-lg rounded-full transition-colors duration-200 ${
                                         step === 2 ? 'bg-blue-500 text-white' : 'text-blue-500'
                                     }`}
@@ -192,9 +260,14 @@ const AddNewOfficerView = () => {
                                         placeholder="Badge ID" 
                                         value={formData.badgeID} 
                                         onChange={handleChange} 
-                                        className="block w-full p-2 border rounded"
+                                        onBlur={handleBlur}
+                                        className={`block w-full p-2 border rounded ${
+                                            touchedFields.badgeID && formErrors.badgeID ? "border-red-500" : ""
+                                        }`}
                                     />
-                                    {errors.badgeID && <span className="text-red-500 text-sm">{errors.badgeID}</span>}
+                                    {touchedFields.badgeID && formErrors.badgeID && (
+                                        <span className="text-red-500 text-sm">{formErrors.badgeID}</span>
+                                    )}
                                 </div>
 
                                 <div className="mb-4">
@@ -204,9 +277,14 @@ const AddNewOfficerView = () => {
                                         placeholder="Officer Name" 
                                         value={formData.fullName} 
                                         onChange={handleChange} 
-                                        className="block w-full p-2 border rounded"
+                                        onBlur={handleBlur}
+                                        className={`block w-full p-2 border rounded ${
+                                            touchedFields.fullName && formErrors.fullName ? "border-red-500" : ""
+                                        }`}
                                     />
-                                    {errors.fullName && <span className="text-red-500 text-sm">{errors.fullName}</span>}
+                                    {touchedFields.fullName && formErrors.fullName && (
+                                        <span className="text-red-500 text-sm">{formErrors.fullName}</span>
+                                    )}
                                 </div>
 
                                 <div className="mb-4">
@@ -216,9 +294,14 @@ const AddNewOfficerView = () => {
                                         placeholder="Mobile Phone" 
                                         value={formData.telephone} 
                                         onChange={handleChange} 
-                                        className="block w-full p-2 border rounded"
+                                        onBlur={handleBlur}
+                                        className={`block w-full p-2 border rounded ${
+                                            touchedFields.telephone && formErrors.telephone ? "border-red-500" : ""
+                                        }`}
                                     />
-                                    {errors.telephone && <span className="text-red-500 text-sm">{errors.telephone}</span>}
+                                    {touchedFields.telephone && formErrors.telephone && (
+                                        <span className="text-red-500 text-sm">{formErrors.telephone}</span>
+                                    )}
                                 </div>
 
                                 <div className="mb-4">
@@ -228,9 +311,14 @@ const AddNewOfficerView = () => {
                                         placeholder="Email" 
                                         value={formData.email} 
                                         onChange={handleChange} 
-                                        className="block w-full p-2 border rounded"
+                                        onBlur={handleBlur}
+                                        className={`block w-full p-2 border rounded ${
+                                            touchedFields.email && formErrors.email ? "border-red-500" : ""
+                                        }`}
                                     />
-                                    {errors.email && <span className="text-red-500 text-sm">{errors.email}</span>}
+                                    {touchedFields.email && formErrors.email && (
+                                        <span className="text-red-500 text-sm">{formErrors.email}</span>
+                                    )}
                                 </div>
 
                                 <div className="mb-4">
@@ -240,9 +328,14 @@ const AddNewOfficerView = () => {
                                         placeholder="Address" 
                                         value={formData.address} 
                                         onChange={handleChange} 
-                                        className="block w-full p-2 border rounded"
+                                        onBlur={handleBlur}
+                                        className={`block w-full p-2 border rounded ${
+                                            touchedFields.address && formErrors.address ? "border-red-500" : ""
+                                        }`}
                                     />
-                                    {errors.address && <span className="text-red-500 text-sm">{errors.address}</span>}
+                                    {touchedFields.address && formErrors.address && (
+                                        <span className="text-red-500 text-sm">{formErrors.address}</span>
+                                    )}
                                 </div>
                             </div>
                         ) : (
@@ -255,7 +348,10 @@ const AddNewOfficerView = () => {
                                             placeholder="Password" 
                                             value={formData.password} 
                                             onChange={handleChange} 
-                                            className="block w-full p-2 border rounded"
+                                            onBlur={handleBlur}
+                                            className={`block w-full p-2 border rounded ${
+                                                touchedFields.password && formErrors.password ? "border-red-500" : ""
+                                            }`}
                                         />
                                         <button 
                                             type="button" 
@@ -265,7 +361,9 @@ const AddNewOfficerView = () => {
                                             {passwordVisible ? "Hide" : "Show"}
                                         </button>
                                     </div>
-                                    {errors.password && <span className="text-red-500 text-sm">{errors.password}</span>}
+                                    {touchedFields.password && formErrors.password && (
+                                        <span className="text-red-500 text-sm">{formErrors.password}</span>
+                                    )}
                                 </div>
 
                                 <div className="mb-4">
@@ -276,7 +374,10 @@ const AddNewOfficerView = () => {
                                             placeholder="Confirm Password" 
                                             value={formData.confirmPassword} 
                                             onChange={handleChange} 
-                                            className="block w-full p-2 border rounded"
+                                            onBlur={handleBlur}
+                                            className={`block w-full p-2 border rounded ${
+                                                touchedFields.confirmPassword && formErrors.confirmPassword ? "border-red-500" : ""
+                                            }`}
                                         />
                                         <button 
                                             type="button" 
@@ -286,8 +387,11 @@ const AddNewOfficerView = () => {
                                             {confirmPasswordVisible ? "Hide" : "Show"}
                                         </button>
                                     </div>
-                                    {errors.confirmPassword && <span className="text-red-500 text-sm">{errors.confirmPassword}</span>}
-                                    {formData.password && formData.password === formData.confirmPassword && (
+                                    {touchedFields.confirmPassword && formErrors.confirmPassword && (
+                                        <span className="text-red-500 text-sm">{formErrors.confirmPassword}</span>
+                                    )}
+                                    {formData.password && formData.confirmPassword && 
+                                     formData.password === formData.confirmPassword && (
                                         <span className="text-green-500 text-sm">Passwords match!</span>
                                     )}
                                 </div>
@@ -311,19 +415,19 @@ const AddNewOfficerView = () => {
                                         type="button" 
                                         onClick={addPatrolLocation}
                                         className="bg-green-500 text-white px-4 py-2 rounded mt-2"
+                                        disabled={!formData.selectedLocation}
                                     >
                                         Add Location
                                     </button>
-                                    {errors.selectedLocation && <span className="text-red-500 text-sm">{errors.selectedLocation}</span>}
                                 </div>
 
                                 <div className="mb-4">
                                     <p className="font-semibold">Selected Patrol Locations:</p>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 mt-2">
                                         {formData.patrolLocations.map((location) => (
                                             <span 
                                                 key={location} 
-                                                className="bg-blue-200 px-3 py-1 rounded-full flex items-center"
+                                                className="bg-blue-200 px-3 py-1 rounded-full flex items-center mb-2"
                                             >
                                                 {location}
                                                 <button 
@@ -336,7 +440,9 @@ const AddNewOfficerView = () => {
                                             </span>
                                         ))}
                                     </div>
-                                    {errors.patrolLocations && <span className="text-red-500 text-sm">{errors.patrolLocations}</span>}
+                                    {touchedFields.patrolLocations && formErrors.patrolLocations && (
+                                        <span className="text-red-500 text-sm">{formErrors.patrolLocations}</span>
+                                    )}
                                 </div>
                             </div>
                         )}
